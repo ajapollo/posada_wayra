@@ -1,0 +1,41 @@
+{% load static %}
+</main>
+<footer class="border-top py-4 mt-4{% if not es_publico and user.is_authenticated and user.rol.nombre != 'CLIENTE' %} app-footer{% endif %}">
+    <div class="container">
+        <div class="row g-3 align-items-start">
+            <div class="col-12 col-lg-5">
+                <div class="d-flex align-items-center gap-2 fw-semibold" style="font-family:'Poppins',sans-serif; color:var(--wayra-mar-oscuro);">
+                    {% if hotel.logo %}
+                    <img src="{{ MEDIA_URL }}{{ hotel.logo.name }}" alt="Logo {{ hotel.nombre }}" class="rounded-2 object-fit-contain" style="width: 32px; height: 32px;">
+                    {% else %}
+                    <i class="bi bi-water"></i>
+                    {% endif %}
+                    {{ hotel.nombre|default:"Posada Wayra" }}
+                </div>
+                <div class="text-muted small">Alojamiento con alma de La Guajira</div>
+                <div class="text-muted small mt-1">
+                    <i class="bi bi-geo-alt me-1"></i>{{ hotel.direccion_completa|default:"Cl. 1 # 9-95, Riohacha, La Guajira, Colombia" }}
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="text-muted small">
+                    <span class="d-block"><i class="bi bi-telephone me-1"></i>{{ hotel.telefono|default:"+57 322 220 352" }}</span>
+                    <span class="d-block"><i class="bi bi-whatsapp me-1"></i>{{ hotel.whatsapp|default:"+57 322 220 352" }}</span>
+                    <span class="d-block"><i class="bi bi-envelope me-1"></i>{{ hotel.email|default:"posadawayra@gmail.com" }}</span>
+                </div>
+            </div>
+            <div class="col-12 col-lg-3">
+                <div class="text-muted small">
+                    <span class="d-block"><i class="bi bi-clock me-1"></i>Check-in {{ hotel.horario_checkin|default:"3:00 p.m." }}</span>
+                    <span class="d-block"><i class="bi bi-clock-history me-1"></i>Check-out {{ hotel.horario_checkout|default:"11:00 a.m." }}</span>
+                    <span class="d-block mt-1"><i class="bi bi-shield-lock me-1"></i>Tus datos están protegidos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}?v=20261118"></script>
+<script src="{% static 'js/sweetalert2.all.min.js' %}?v=20261118"></script>
+<script src="{% static 'js/wayra-ui.js' %}?v=20261118"></script>
+</body>
+</html>

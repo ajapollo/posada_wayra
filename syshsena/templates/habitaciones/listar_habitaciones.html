@@ -1,0 +1,120 @@
+{% load static %}
+{% include 'inc/header.html' %}
+{% load hotel_extras %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-door-open"></i></div>
+        <div>
+            <h1 class="page-title">Habitaciones</h1>
+            <p class="page-subtitle">Catálogo, tarifas por noche y disponibilidad en tiempo real.</p>
+        </div>
+    </div>
+    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+    <div class="page-actions">
+        <a href="{% url 'registrar_habitacion' %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-plus-lg me-1"></i> Nueva habitación
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="toolbar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-7">
+            <label class="form-label" for="buscarHabitacion">Buscar habitación</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="buscarHabitacion" name="buscar" value="{{ buscar }}" class="form-control" placeholder="Número, tipo o alojamiento">
+            </div>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold">Filtrar</button>
+            {% if buscar %}
+            <a href="{% url 'listar_habitaciones' %}" class="btn btn-light border btn-sm rounded-3">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="row g-4 mb-4">
+    {% for habitacion in habitaciones %}
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="panel panel-hover h-100 overflow-hidden d-flex flex-column">
+            <div class="room-photo" style="height: 200px;">
+                <img src="{% if habitacion.imagen %}{{ MEDIA_URL }}{{ habitacion.imagen.name }}{% else %}{{ MEDIA_URL }}habitaciones/default.jpg{% endif %}"
+                     data-fallback="{{ MEDIA_URL }}habitaciones/default.jpg"
+                     onerror="this.onerror=null; this.src=this.dataset.fallback;"
+                     alt="Habitación {{ habitacion.numero }}">
+
+                <div class="position-absolute top-0 end-0 m-3">
+                    {% if habitacion.estado == 'DISPONIBLE' %}
+                        <span class="pill pill-success shadow-sm"><i class="bi bi-check-circle-fill"></i>Disponible</span>
+                    {% elif habitacion.estado == 'OCUPADA' %}
+                        <span class="pill pill-danger shadow-sm"><i class="bi bi-person-fill"></i>Ocupada</span>
+                    {% elif habitacion.estado == 'LIMPIEZA' %}
+                        <span class="pill pill-info shadow-sm"><i class="bi bi-brush"></i>En limpieza</span>
+                    {% else %}
+                        <span class="pill pill-warning shadow-sm"><i class="bi bi-tools"></i>Mantenimiento</span>
+                    {% endif %}
+                </div>
+
+                <div class="room-photo-caption">
+                    <strong class="d-block">Habitación {{ habitacion.numero }}</strong>
+                    <span class="extra-small text-white-50">{{ habitacion.tipo.nombre }}</span>
+                </div>
+            </div>
+
+            <div class="panel-body d-flex flex-column flex-grow-1">
+                <div class="d-flex justify-content-between text-muted extra-small mb-3">
+                    <span><i class="bi bi-people me-1"></i>{{ habitacion.capacidad }} persona{{ habitacion.capacidad|pluralize }}</span>
+                    <span><i class="bi bi-layers me-1"></i>Piso {{ habitacion.piso }}</span>
+                    <span><i class="bi bi-building me-1"></i>{{ habitacion.alojamiento.nombre|truncatechars:16 }}</span>
+                </div>
+                <div class="extra-small text-muted mb-3">
+                    <div>Máximo {{ habitacion.max_adultos }} adultos · {{ habitacion.max_ninos|default_if_none:1 }} niños, dentro de {{ habitacion.capacidad }} personas en total.</div>
+                    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+                    <a href="{% url 'editar_tipo' habitacion.tipo_id %}">Editar capacidad del tipo {{ habitacion.tipo.nombre }}</a>
+                    <div>El cambio afecta todas las habitaciones de ese tipo.</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-baseline pt-3 border-top mt-auto">
+                    <div>
+                        <span class="h5 mb-0 fw-bold" style="color: var(--wayra-mar);">{{ habitacion.precio_noche|pesos }}</span>
+                        <span class="text-muted extra-small">/ habitación / noche</span>
+                    </div>
+                    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'editar_habitacion' habitacion.id %}" class="btn btn-sm btn-light border rounded-3" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{% url 'eliminar_habitacion' habitacion.id %}"
+                              data-confirm="La habitación {{ habitacion.numero }} se eliminará del catálogo."
+                              data-titulo="Eliminar habitación" data-accion="Sí, eliminar">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="panel">
+            <div class="empty-state">
+                <i class="bi bi-door-closed"></i>
+                <p>No se encontraron habitaciones con ese criterio.</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% include 'publico/inc/paginacion.html' with pagina=habitaciones %}
+
+{% include 'inc/footer.html' %}

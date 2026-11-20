@@ -1,0 +1,183 @@
+{% load static %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-gear-wide-connected"></i></div>
+        <div>
+            <h1 class="page-title">Configuración del establecimiento</h1>
+            <p class="page-subtitle">Estos datos alimentan encabezados, pies de página, recibos y el portal público.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'dashboard' %}" class="btn btn-light border btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver al dashboard
+        </a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center rounded-3 border-0 shadow-sm mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <div class="small">{{ error }}</div>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-4">
+        <div class="col-12 col-xl-7">
+            <div class="panel form-panel mb-4">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="bi bi-building"></i> Identidad e información fiscal</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-8">
+                            <label class="form-label" for="nombre">Nombre del establecimiento <span class="text-danger">*</span></label>
+                            <input type="text" id="nombre" name="nombre" class="form-control" value="{{ configuracion.nombre }}" required>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="nit">NIT / Registro</label>
+                            <input type="text" id="nit" name="nit" class="form-control" value="{{ configuracion.nit|default:'' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="direccion">Dirección oficial <span class="text-danger">*</span></label>
+                            <input type="text" id="direccion" name="direccion" class="form-control"
+                                   value="{{ configuracion.direccion }}" placeholder="Cl. 1 # 9-95, Riohacha, La Guajira, Colombia" required>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="ciudad">Ciudad</label>
+                            <input type="text" id="ciudad" name="ciudad" class="form-control" value="{{ configuracion.ciudad }}">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="departamento">Departamento</label>
+                            <input type="text" id="departamento" name="departamento" class="form-control" value="{{ configuracion.departamento }}">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="pais">País</label>
+                            <input type="text" id="pais" name="pais" class="form-control" value="{{ configuracion.pais }}">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="telefono">Teléfono <span class="text-danger">*</span></label>
+                            <input type="text" id="telefono" name="telefono" class="form-control" value="{{ configuracion.telefono }}" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="whatsapp">WhatsApp <span class="text-danger">*</span></label>
+                            <input type="text" id="whatsapp" name="whatsapp" class="form-control" value="{{ configuracion.whatsapp }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="email">Correo institucional <span class="text-danger">*</span></label>
+                            <input type="email" id="email" name="email" class="form-control" value="{{ configuracion.email }}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel form-panel">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="bi bi-file-text"></i> Políticas de alojamiento</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="horario_checkin">Horario de check-in</label>
+                            <input type="text" id="horario_checkin" name="horario_checkin" class="form-control" value="{{ configuracion.horario_checkin }}">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="horario_checkout">Horario de check-out</label>
+                            <input type="text" id="horario_checkout" name="horario_checkout" class="form-control" value="{{ configuracion.horario_checkout }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="edad_max_nino">Edad máxima para tarifa/ocupación de niño <span class="text-danger">*</span></label>
+                            <input type="number" id="edad_max_nino" name="edad_max_nino" class="form-control"
+                                   value="{{ configuracion.edad_max_nino }}" min="0" max="17" step="1" required
+                                   aria-describedby="ayuda_edad_max_nino">
+                            <div id="ayuda_edad_max_nino" class="form-text extra-small">
+                                Para este establecimiento, desde {{ edad_min_adulto }} años cuentan como adultos.
+                                Los menores también cuentan en la ocupación; sin tarifa por niño extra.
+                                Este límite configura la tarifa y la ocupación, no una política universal de mayoría de edad.
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="politicas">Políticas visibles al huésped <span class="text-danger">*</span></label>
+                            <textarea id="politicas" name="politicas" rows="7" class="form-control" required>{{ configuracion.politicas }}</textarea>
+                            <div class="form-text extra-small">
+                                Incluye la regla de abono mínimo de 1 noche y la cancelación automática por no-show.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="panel form-panel mb-4">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="bi bi-image"></i> Logo</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded-3 border">
+                        <div class="rounded border bg-white d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0" style="width: 84px; height: 84px;">
+                            {% if configuracion.logo %}
+                            <img src="{{ MEDIA_URL }}{{ configuracion.logo.name }}" alt="Logo actual" class="w-100 h-100 object-fit-contain">
+                            {% else %}
+                            <i class="bi bi-water fs-2 text-muted"></i>
+                            {% endif %}
+                        </div>
+                        <div class="extra-small text-muted">Se muestra en encabezados, pies de página y recibos.</div>
+                    </div>
+                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp">
+                    {% if configuracion.logo %}
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="quitar_logo" name="quitar_logo" value="1">
+                        <label class="form-check-label extra-small" for="quitar_logo">Quitar logo actual</label>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel form-panel mb-4">
+                <div class="panel-head">
+                    <h2 class="panel-title"><i class="bi bi-card-image"></i> Banner principal</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="rounded border bg-light overflow-hidden mb-3" style="height: 150px;">
+                        {% if configuracion.banner %}
+                        <img src="{{ MEDIA_URL }}{{ configuracion.banner.name }}" alt="Banner actual" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted extra-small">
+                            <i class="bi bi-image fs-2 mb-1"></i>
+                            Sin banner personalizado
+                        </div>
+                        {% endif %}
+                    </div>
+                    <input type="file" name="banner" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp">
+                    {% if configuracion.banner %}
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="quitar_banner" name="quitar_banner" value="1">
+                        <label class="form-check-label extra-small" for="quitar_banner">Quitar banner actual</label>
+                    </div>
+                    {% endif %}
+                    <div class="form-text extra-small">Se usa como fondo del hero en el portal público.</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-body extra-small text-muted">
+                    <div class="d-flex justify-content-between mb-2"><span>Última actualización</span><strong class="text-dark">{{ configuracion.actualizado|date:"d/m/Y H:i" }}</strong></div>
+                    <div class="d-flex justify-content-between"><span>Vista previa pública</span><a href="{% url 'posada_wayra' %}" target="_blank" rel="noopener">Abrir portal <i class="bi bi-box-arrow-up-right ms-1"></i></a></div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-light border rounded-pill px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold flex-fill">
+                    <i class="bi bi-check-lg me-1"></i>Guardar configuración
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% include 'inc/footer.html' %}

@@ -1,0 +1,217 @@
+{% load hotel_extras %}
+{% include 'inc/header.html' %}
+
+<div class="page-head no-print">
+    <div class="page-head-main">
+        <div class="icon-tile ok"><i class="bi bi-cash-stack"></i></div>
+        <div>
+            <h1 class="page-title">Reporte de ingresos</h1>
+            <p class="page-subtitle">Resumen financiero de la posada e historial detallado de pagos.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-light border btn-sm rounded-3" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Exportar
+        </button>
+        <a href="{% url 'reportes_index' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<div class="toolbar no-print">
+    <div class="row g-2 align-items-end">
+        <div class="col-12 col-lg-auto">
+            <span class="form-label d-block">Periodo</span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="?periodo=hoy" class="btn btn-outline-primary {% if periodo == 'hoy' %}active{% endif %}">Hoy</a>
+                <a href="?periodo=ayer" class="btn btn-outline-primary {% if periodo == 'ayer' %}active{% endif %}">Ayer</a>
+                <a href="?periodo=mes" class="btn btn-outline-primary {% if periodo == 'mes' %}active{% endif %}">Este mes</a>
+                <a href="?periodo=historico" class="btn btn-outline-primary {% if periodo == 'historico' %}active{% endif %}">Histórico</a>
+            </div>
+        </div>
+        <div class="col-12 col-lg">
+            <form method="get" class="row g-2 align-items-end">
+                <input type="hidden" name="periodo" value="rango">
+                <div class="col-6 col-md-4">
+                    <label class="form-label" for="ingDesde">Desde</label>
+                    <input type="date" id="ingDesde" name="fecha_desde" value="{{ fecha_desde }}" class="form-control form-control-sm">
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="form-label" for="ingHasta">Hasta</label>
+                    <input type="date" id="ingHasta" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control form-control-sm">
+                </div>
+                <div class="col-12 col-md-4">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold w-100">
+                        <i class="bi bi-funnel me-1"></i> Aplicar rango
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Recaudado en el periodo</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ total_recaudado|pesos }}</p>
+                    <span class="kpi-hint text-success"><i class="bi bi-check-circle-fill"></i> {{ periodo|capfirst }}</span>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-cash"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Histórico total</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ total_historico|pesos }}</p>
+                    <span class="kpi-hint">Acumulado general</span>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-graph-up-arrow"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Saldo por cobrar</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ saldo_pendiente|pesos }}</p>
+                    <span class="kpi-hint">Reservas no canceladas</span>
+                </div>
+                <div class="icon-tile sm sol"><i class="bi bi-clock-history"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Tarjeta</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ total_tarjeta|pesos }}</p>
+                    <span class="kpi-hint">Débito / crédito</span>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-credit-card"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-calendar-range"></i> Ingresos diarios · {{ mes_nombre }}</h2>
+                <span class="extra-small text-muted">{{ num_dias }} días</span>
+            </div>
+            <div class="panel-body">
+                <div class="chart-bars">
+                    {% for b in grafico_dias %}
+                    <div class="chart-bar-col" title="Día {{ b.dia }}: {{ b.monto|pesos }}">
+                        <div class="chart-bar-fill" style="height: {{ b.porcentaje }}%;"></div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between text-muted extra-small pt-2">
+                    <span>Día 1</span>
+                    <span>Día {{ num_dias }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-wallet2"></i> Por método de pago</h2>
+            </div>
+            <div class="panel-body">
+                {% for etiqueta, total in por_metodo %}
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <span class="text-muted">{{ etiqueta }}</span>
+                    <strong class="text-dark">{{ total|pesos }}</strong>
+                </div>
+                {% endfor %}
+                <div class="border-top pt-3 mt-2 d-flex justify-content-between extra-small">
+                    <span class="text-muted fw-semibold">Total del periodo</span>
+                    <strong class="text-dark">{{ total_recaudado|pesos }}</strong>
+                </div>
+                <div class="border-top pt-3 mt-2">
+                    <a href="{% url 'reporte_ocupacion' %}" class="btn btn-light border btn-sm rounded-3 w-100 text-start fw-semibold">
+                        <i class="bi bi-pie-chart me-1"></i> Ver reporte de ocupación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-list-ul"></i> Detalle de ingresos</h2>
+        <span class="pill pill-secondary">{{ pagos.paginator.count }} pago{{ pagos.paginator.count|pluralize }}</span>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Concepto</th>
+                    <th>Huésped</th>
+                    <th>Tipo de pago</th>
+                    <th>Monto</th>
+                    <th class="col-acciones">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td class="text-muted">{{ p.fecha_pago|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <strong class="d-block text-dark">Habitación {{ p.reserva.habitacion.numero|default:"—" }}</strong>
+                        <span class="text-muted extra-small">{{ p.reserva.habitacion.tipo.nombre|default:"Alojamiento" }}</span>
+                    </td>
+                    <td>
+                        <strong class="text-dark">{{ p.reserva.huesped.nombre }} {{ p.reserva.huesped.apellido }}</strong>
+                    </td>
+                    <td>
+                        {% if p.metodo_pago == 'TRANSFERENCIA' %}
+                        <span class="pill pill-success">Transferencia</span>
+                        {% elif p.metodo_pago == 'EFECTIVO' %}
+                        <span class="pill pill-warning">Efectivo</span>
+                        {% else %}
+                        <span class="pill pill-info">Tarjeta</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-semibold text-dark">{{ p.monto|pesos }}</td>
+                    <td class="col-acciones">
+                        <a href="{% url 'ver_reserva' p.reserva.id %}" class="btn btn-sm btn-light border rounded-3" title="Ver reserva">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-cash-stack"></i>
+                            <p>No hay registros de pagos para el periodo seleccionado.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3 no-print">
+    {% include 'publico/inc/paginacion.html' with pagina=pagos %}
+</div>
+
+{% include 'inc/footer.html' %}

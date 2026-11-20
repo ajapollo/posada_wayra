@@ -1,0 +1,858 @@
+/* =====================================================================
+Posada Wayra — estilo de marca (inspirado en La Guajira, Colombia)
+  Paleta: turquesa del mar Caribe + terracota del desierto + arena.
+  Todo local (sin CDN). Fuentes: Poppins (titulos) + Inter (texto).
+   ===================================================================== */
+
+/* ---------- Tipografias locales ---------- */
+@font-face { font-family:'Poppins'; font-style:normal; font-weight:400; font-display:swap; src:url('../fonts/poppins-400.woff2') format('woff2'); }
+@font-face { font-family:'Poppins'; font-style:normal; font-weight:500; font-display:swap; src:url('../fonts/poppins-500.woff2') format('woff2'); }
+@font-face { font-family:'Poppins'; font-style:normal; font-weight:600; font-display:swap; src:url('../fonts/poppins-600.woff2') format('woff2'); }
+@font-face { font-family:'Poppins'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/poppins-700.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:400; font-display:swap; src:url('../fonts/inter-400.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:500; font-display:swap; src:url('../fonts/inter-500.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:600; font-display:swap; src:url('../fonts/inter-600.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/inter-700.woff2') format('woff2'); }
+
+
+      :root {
+        --sidebar-width: 250px;
+      }
+      body {
+        background-color: #f8fafc;
+        font-family: 'Inter', sans-serif;
+        color: #334155;
+      }
+
+      /* ---------- BARRA SUPERIOR ---------- */
+      .top-navbar {
+        height: 64px;
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1030;
+      }
+
+      /* ---------- MENÚ LATERAL ---------- */
+      .app-sidebar {
+        width: var(--sidebar-width);
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
+        position: fixed;
+        top: 64px; bottom: 0; left: 0;
+        z-index: 1020;
+        overflow-y: auto;
+        padding: 1.25rem 0.75rem;
+      }
+
+      .app-main {
+        margin-left: var(--sidebar-width);
+        margin-top: 64px;
+        padding: 2rem 2.25rem;
+      }
+
+      @media (max-width: 991.98px) {
+        .app-sidebar { margin-left: calc(-1 * var(--sidebar-width)); transition: margin 0.3s ease; }
+        .app-sidebar.show { margin-left: 0; }
+        .app-main { margin-left: 0; padding: 1.25rem; }
+      }
+
+      .sidebar-brand { padding: 0 0.75rem 1.25rem 0.75rem; }
+
+      .sidebar-section-title {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        padding: 0.75rem 0.85rem 0.25rem;
+      }
+
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.6rem 0.85rem;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 500;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        margin-bottom: 0.15rem;
+      }
+      .sidebar-link:hover { background: #f1f5f9; color: #0f172a; }
+      .sidebar-link.active {
+        background: var(--wayra-mar-claro);
+        color: var(--wayra-mar-oscuro);
+        font-weight: 600;
+      }
+      .sidebar-link.active i { color: var(--wayra-mar); }
+
+      .search-box-top {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.4rem 1rem;
+        width: 380px;
+      }
+      .search-box-top input {
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 0.85rem;
+        width: 100%;
+      }
+
+      /* ---------- NAVBAR DE CLIENTES Y PÚBLICO ---------- */
+      .pw-navbar {
+        background: linear-gradient(100deg, var(--wayra-mar-oscuro), var(--wayra-mar));
+        box-shadow: 0 2px 12px rgba(10, 95, 105, .22);
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+      }
+      .pw-navbar .navbar-brand { color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; }
+      .pw-navbar .nav-link { color: rgba(255, 255, 255, .86); font-weight: 500; border-radius: 999px; padding: .4rem .9rem !important; }
+      .pw-navbar .nav-link:hover { color: #fff; background: rgba(255, 255, 255, .12); }
+      .pw-navbar .nav-link.active { color: #fff; background: rgba(255, 255, 255, .18); font-weight: 600; }
+      .pw-navbar .navbar-toggler { border-color: rgba(255, 255, 255, .4); }
+      .pw-navbar .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255,255,255,0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+      }
+
+
+/* ---------- Paleta de marca ---------- */
+:root {
+  --wayra-mar: #0f7d8a;        /* turquesa Caribe (color principal) */
+  --wayra-mar-oscuro: #0a5f69;
+  --wayra-mar-claro: #e6f3f4;
+  --wayra-terracota: #c65a3a;  /* arcilla / desierto (acento) */
+  --wayra-terracota-oscuro: #a5452b;
+  --wayra-dorado: #e0a96d;     /* dunas */
+  --wayra-arena: #fbf7f1;      /* fondo */
+  --wayra-tinta: #263238;      /* texto */
+
+  /* Reasignamos el 'primary' de Bootstrap al turquesa de la marca */
+  --bs-primary: var(--wayra-mar);
+  --bs-primary-rgb: 15, 125, 138;
+  --bs-link-color: var(--wayra-mar);
+  --bs-link-color-rgb: 15, 125, 138;
+  --bs-link-hover-color: var(--wayra-mar-oscuro);
+  --bs-body-color: var(--wayra-tinta);
+  --bs-body-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand, .font-wayuu {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ---------- Base ---------- */
+body {
+  color: var(--wayra-tinta);
+  font-family: var(--bs-body-font-family);
+  background-color: var(--wayra-arena) !important;
+}
+main { min-height: 70vh; }
+h1,h2,h3,h4,h5,h6,.navbar-brand { font-family: 'Poppins', sans-serif; }
+h1,h2,h3 { letter-spacing:-.01em; }
+
+/* ---------- Navbar ---------- */
+.navbar.bg-primary {
+  background: linear-gradient(100deg, var(--wayra-mar-oscuro), var(--wayra-mar)) !important;
+  box-shadow: 0 2px 10px rgba(10,95,105,.18);
+}
+.navbar-brand { letter-spacing:.3px; font-weight:700; }
+.navbar-dark .nav-link { color: rgba(255,255,255,.88); }
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link:focus { color:#fff; }
+.navbar-dark .dropdown-menu { --bs-dropdown-link-active-bg: var(--wayra-mar); }
+
+/* ---------- Botones primarios (turquesa) ---------- */
+.btn-primary {
+  --bs-btn-bg: var(--wayra-mar);
+  --bs-btn-border-color: var(--wayra-mar);
+  --bs-btn-hover-bg: var(--wayra-mar-oscuro);
+  --bs-btn-hover-border-color: var(--wayra-mar-oscuro);
+  --bs-btn-active-bg: var(--wayra-mar-oscuro);
+  --bs-btn-active-border-color: var(--wayra-mar-oscuro);
+  --bs-btn-disabled-bg: var(--wayra-mar);
+  --bs-btn-disabled-border-color: var(--wayra-mar);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--wayra-mar);
+  --bs-btn-border-color: var(--wayra-mar);
+  --bs-btn-hover-bg: var(--wayra-mar);
+  --bs-btn-hover-border-color: var(--wayra-mar);
+  --bs-btn-active-bg: var(--wayra-mar);
+  --bs-btn-active-border-color: var(--wayra-mar);
+}
+
+/* Boton de acento (terracota) para llamadas a la accion especiales */
+.btn-acento {
+  --bs-btn-color:#fff; --bs-btn-bg:var(--wayra-terracota); --bs-btn-border-color:var(--wayra-terracota);
+  --bs-btn-hover-color:#fff; --bs-btn-hover-bg:var(--wayra-terracota-oscuro); --bs-btn-hover-border-color:var(--wayra-terracota-oscuro);
+  --bs-btn-active-color:#fff; --bs-btn-active-bg:var(--wayra-terracota-oscuro); --bs-btn-active-border-color:var(--wayra-terracota-oscuro);
+}
+
+/* ---------- Pestanas y filtros de estado (turquesa) ---------- */
+.nav-pills .nav-link {
+  color: var(--wayra-mar-oscuro);
+  font-weight: 600;
+  border-radius: 999px;
+}
+.nav-pills .nav-link:hover { background: var(--wayra-mar-claro); color: var(--wayra-mar-oscuro); }
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: var(--wayra-mar) !important;
+  color: #fff !important;
+}
+.nav-tabs .nav-link { color: var(--wayra-mar-oscuro); font-weight: 600; }
+.nav-tabs .nav-link.active { color: var(--wayra-mar); border-bottom-color: var(--wayra-mar); }
+
+/* ---------- Avisos y acciones de advertencia (paleta de marca) ---------- */
+.btn-warning {
+  --bs-btn-color: #3f2d14;
+  --bs-btn-bg: var(--wayra-dorado);
+  --bs-btn-border-color: var(--wayra-dorado);
+  --bs-btn-hover-color: #3f2d14;
+  --bs-btn-hover-bg: #d69a55;
+  --bs-btn-hover-border-color: #d69a55;
+  --bs-btn-active-color: #3f2d14;
+  --bs-btn-active-bg: #c98e4a;
+  --bs-btn-active-border-color: #c98e4a;
+}
+.btn-info {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--wayra-mar);
+  --bs-btn-border-color: var(--wayra-mar);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--wayra-mar-oscuro);
+  --bs-btn-hover-border-color: var(--wayra-mar-oscuro);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--wayra-mar-oscuro);
+  --bs-btn-active-border-color: var(--wayra-mar-oscuro);
+}
+.alert-info {
+  --bs-alert-color: var(--wayra-mar-oscuro);
+  --bs-alert-bg: var(--wayra-mar-claro);
+  --bs-alert-border-color: #cfe7e9;
+}
+.alert-warning {
+  --bs-alert-color: #7a4f10;
+  --bs-alert-bg: #fdf3e3;
+  --bs-alert-border-color: #f3dfbd;
+}
+
+/* ---------- Textos y badges de marca ---------- */
+.text-primary { color: var(--wayra-mar) !important; }
+.badge.bg-primary { background-color: var(--wayra-mar) !important; }
+.bg-primary { background-color: var(--wayra-mar) !important; }
+a { color: var(--wayra-mar); }
+a:hover { color: var(--wayra-mar-oscuro); }
+
+/* ---------- Tarjetas (superficie blanca legible) ---------- */
+.card {
+  border: 1px solid rgba(38,50,56,.08);
+  border-radius: .9rem;
+  box-shadow: 0 .4rem 1.1rem rgba(38,50,56,.06);
+  background-color: #fff !important;
+}
+.card .card-header { 
+  background: var(--wayra-mar-claro) !important; 
+  border-bottom: 1px solid rgba(38,50,56,.06); 
+  font-family: 'Poppins', sans-serif; 
+}
+
+/* ---------- Estilos de tarjetas de habitación (hab-card) ---------- */
+.hab-card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #fff !important;
+}
+
+.hab-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+.hab-foto-wrap {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  background-color: #e9ecef;
+  overflow: hidden;
+}
+
+.hab-foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.hab-estado-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.hab-body {
+  padding: 1.25rem;
+}
+
+.hab-detalles li {
+  font-size: 0.9rem;
+  color: #495057;
+  margin-bottom: 4px;
+}
+
+/* ---------- Tablas ---------- */
+table td, table th { vertical-align: middle; }
+.table thead th { color: var(--wayra-mar-oscuro); font-family:'Poppins',sans-serif; font-weight:600; }
+
+/* ---------- Formularios ---------- */
+.form-control:focus, .form-select:focus {
+  border-color: var(--wayra-mar);
+  box-shadow: 0 0 0 .2rem rgba(15,125,138,.18);
+}
+
+/* ---------- Footer ---------- */
+footer { background: #fff !important; }
+
+/* ---------- Pantalla de login ---------- */
+.pagina-login {
+  background: #0d0d0d !important;
+}
+
+/* ---------- Iconos ---------- */
+.bi { vertical-align: -.125em; }
+
+.reserva-info-box { 
+  background-color: #f8f9fa; 
+  border-left: 4px solid var(--bs-primary, #0d6efd); 
+  border-radius: .375rem; 
+}
+
+/* Vista de detalle de una habitación */
+.det-foto { width: 100%; max-height: 520px; object-fit: contain; background: #0d1b2a; border-radius: .75rem; }
+.det-foto-vacia { width: 100%; height: 320px; background: #e9ecef; border-radius: .75rem; }
+.det-dato { display: flex; align-items: center; gap: .55rem; }
+.det-dato i { color: var(--wayra-mar-oscuro, #0d6efd); font-size: 1.15rem; }
+.det-regla { display: flex; align-items: center; gap: .55rem; }
+.det-regla i { font-size: 1.15rem; }
+.det-mapa { width: 100%; height: 340px; border: 0; border-radius: .75rem; }
+
+/* Mini galeria "Vive La Guajira" */
+.guajira-foto { position: relative; height: 170px; border-radius: .6rem; overflow: hidden; }
+.guajira-foto img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.guajira-foto:hover img { transform: scale(1.07); }
+.guajira-foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0) 55%); }
+.guajira-foto span { position: absolute; left: .7rem; bottom: .55rem; z-index: 2; color: #fff; font-weight: 600; font-size: .9rem; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+@media (max-width: 575.98px) { .guajira-foto { height: 140px; } }
+
+/* ==========================================================
+   Posada Wayra - Estilos específicos para el Panel de Cliente
+   ========================================================== */
+
+.wayra-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: .9rem;
+  padding: 2rem;
+  color: #fff;
+  box-shadow: 0 .4rem 1.1rem rgba(38,50,56,.12);
+  background: linear-gradient(135deg, var(--wayra-mar-oscuro) 0%, var(--wayra-mar) 60%, var(--wayra-dorado) 130%);
+}
+.wayra-hero h1 { color: #fff; }
+.wayra-hero .lead { color: rgba(255, 255, 255, .9); }
+
+.wayra-stat {
+  border: 0;
+  border-radius: .9rem;
+  box-shadow: 0 .4rem 1.1rem rgba(38,50,56,.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+  background-color: #fff !important;
+}
+.wayra-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 .6rem 1.6rem rgba(38,50,56,.14) !important;
+}
+
+.wayra-stat-icono {
+  width: 3rem;
+  height: 3rem;
+  border-radius: .8rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.wayra-stat-icono.mar { background: var(--wayra-mar-claro); color: var(--wayra-mar); }
+.wayra-stat-icono.sol { background: #fef3e2; color: #d97706; }
+.wayra-stat-icono.tierra { background: #fdf2f0; color: var(--wayra-terracota); }
+
+.wayra-accion {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: 1.1rem;
+  height: 100%;
+  background: #fff;
+  border-radius: .9rem;
+  text-decoration: none;
+  color: var(--wayra-tinta);
+  border: 1px solid rgba(38,50,56,.1);
+  transition: all .2s ease;
+}
+.wayra-accion:hover {
+  border-color: var(--wayra-terracota);
+  transform: translateY(-2px);
+  box-shadow: 0 .4rem 1.1rem rgba(38,50,56,.1);
+  color: var(--wayra-terracota);
+}
+.wayra-accion i {
+  font-size: 1.6rem;
+  color: var(--wayra-terracota);
+}
+
+.wayra-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .25rem;
+}
+.wayra-seccion-titulo::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  margin-left: .5rem;
+  background: linear-gradient(90deg, var(--wayra-dorado), transparent);
+}
+
+.guajira-modal-foto {
+  width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  background: var(--wayra-mar-oscuro);
+  border-radius: .6rem;
+}
+
+.font-wayuu {
+  font-family: 'Yatra One', 'Cinzel', serif;
+  letter-spacing: 0.5px;
+}
+
+.text-arena {
+  color: #e2b048 !important;
+}
+
+.texto-sombra-oscura {
+  text-shadow: 0 2px 8px rgba(13, 27, 42, 0.9), 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+
+/* =====================================================================
+  SISTEMA DE DISEÑO COMPARTIDO (paneles de gestión)
+   ===================================================================== */
+
+:root {
+  --pw-border: #e3e9ee;
+  --pw-muted: #64748b;
+  --pw-soft: #f6f9fa;
+  --pw-ink: #0f172a;
+  --pw-radius: 16px;
+  --pw-shadow: 0 2px 12px rgba(16, 42, 51, .06);
+  --pw-shadow-lg: 0 10px 28px rgba(16, 42, 51, .12);
+}
+
+.text-muted { color: var(--pw-muted) !important; }
+.extra-small { font-size: .78rem; }
+.fw-600 { font-weight: 600; }
+
+.page-head {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  align-items: flex-end; justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.page-head-main { display: flex; align-items: center; gap: .9rem; min-width: 0; }
+.page-title { font-size: 1.55rem; font-weight: 700; color: var(--pw-ink); margin: 0; line-height: 1.2; }
+.page-subtitle { margin: .2rem 0 0; color: var(--pw-muted); font-size: .88rem; }
+.page-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+.icon-tile {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: 14px; display: grid; place-items: center;
+  font-size: 1.3rem; background: var(--wayra-mar-claro); color: var(--wayra-mar);
+}
+.icon-tile.sol   { background: #fef3e2; color: #d97706; }
+.icon-tile.tierra{ background: #fdf2f0; color: var(--wayra-terracota); }
+.icon-tile.ok    { background: #e7f7ee; color: #15803d; }
+.icon-tile.info  { background: #e8f4fd; color: #1d7fc4; }
+.icon-tile.danger{ background: #fdecec; color: #b91c1c; }
+.icon-tile.sm    { width: 36px; height: 36px; border-radius: 11px; font-size: 1rem; }
+
+.panel {
+  background: #fff;
+  border: 1px solid var(--pw-border);
+  border-radius: var(--pw-radius);
+  box-shadow: var(--pw-shadow);
+}
+.panel-body { padding: 1.5rem; }
+.panel-head {
+  display: flex; flex-wrap: wrap; gap: .75rem;
+  justify-content: space-between; align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--pw-border);
+}
+.panel-title {
+  display: flex; align-items: center; gap: .55rem;
+  font-size: .95rem; font-weight: 700; color: var(--pw-ink); margin: 0;
+}
+.panel-title i { color: var(--wayra-mar); }
+.panel-hover { transition: transform .18s ease, box-shadow .18s ease; }
+.panel-hover:hover { transform: translateY(-3px); box-shadow: var(--pw-shadow-lg); }
+
+.kpi { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.kpi-label { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pw-muted); }
+.kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--pw-ink); line-height: 1.15; margin: .15rem 0 0; }
+.kpi-hint { font-size: .76rem; color: var(--pw-muted); }
+
+.table-shell {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.table-clean {
+  width: 100%; margin: 0; font-size: .86rem;
+  border-collapse: separate; border-spacing: 0;
+  background: #fff;
+}
+.table-shell > .table-clean { min-width: 720px; }
+.table-shell.table-shell-fluid > .table-clean { min-width: 0; }
+.table-clean thead th {
+  background: var(--pw-soft);
+  color: #5b6b7a;
+  font-size: .68rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--pw-border);
+  white-space: nowrap;
+}
+.table-clean tbody td {
+  padding: .85rem 1rem;
+  border-bottom: 1px solid #eef2f5;
+  vertical-align: middle;
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+.table-clean tbody tr:hover { background: #fafcfd; }
+.table-clean tbody tr:last-child td { border-bottom: 0; }
+.table-clean .col-acciones { text-align: right; white-space: nowrap; }
+
+.toolbar {
+  background: #fff; border: 1px solid var(--pw-border);
+  border-radius: var(--pw-radius); box-shadow: var(--pw-shadow);
+  padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+}
+.toolbar .form-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--pw-muted); margin-bottom: .3rem; }
+
+.empty-state { text-align: center; padding: 2.75rem 1.5rem; color: var(--pw-muted); }
+.empty-state i { font-size: 2.4rem; display: block; margin-bottom: .6rem; color: #cbd5e1; }
+.empty-state p { margin: 0; font-size: .9rem; }
+
+.pill { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; padding: .22rem .68rem; font-size: .72rem; font-weight: 700; line-height: 1.4; }
+.pill-success { background: #e7f7ee; color: #15803d; }
+.pill-warning { background: #fef5e0; color: #a16207; }
+.pill-danger  { background: #fdecec; color: #b91c1c; }
+.pill-info    { background: #e8f4fd; color: #1d7fc4; }
+.pill-secondary { background: #eef2f6; color: #55657a; }
+.pill-hero    { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.35); }
+
+.form-label { font-weight: 600; color: #3f4d5a; font-size: .86rem; }
+.form-text { color: var(--pw-muted); }
+.form-section-title {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--wayra-mar-oscuro);
+  display: flex; align-items: center; gap: .5rem;
+  padding-bottom: .6rem; margin-bottom: 1rem;
+  border-bottom: 1px dashed var(--pw-border);
+}
+.form-panel { max-width: 920px; }
+.form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; padding-top: 1.25rem; margin-top: 1.5rem; border-top: 1px solid var(--pw-border); }
+
+.avatar-sm {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--wayra-mar-claro); color: var(--wayra-mar-oscuro);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .8rem; flex-shrink: 0;
+}
+
+.room-photo { position: relative; overflow: hidden; background: #eef2f5; }
+.room-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.room-photo-caption {
+  position: absolute; inset: auto 0 0 0;
+  padding: .7rem 1rem; color: #fff;
+  background: linear-gradient(to top, rgba(15,23,42,.82), rgba(15,23,42,0));
+}
+
+.servicio-photo { position: relative; overflow: hidden; background: #f1f5f9; height: 190px; }
+.servicio-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.clamp-2 {
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chart-bars {
+  display: flex; align-items: flex-end; gap: 3px;
+  height: 150px; padding-top: .75rem;
+  border-bottom: 1px solid var(--pw-border);
+  overflow-x: auto;
+}
+.chart-bar-col { flex: 1; min-width: 12px; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.chart-bar-fill {
+  width: 100%; max-width: 56px; border-radius: 4px 4px 0 0;
+  background: linear-gradient(to top, var(--wayra-mar-oscuro), var(--wayra-mar));
+  min-height: 2px;
+}
+
+.timeline-item { position: relative; padding-left: 1.9rem; padding-bottom: 1.15rem; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item::before {
+  content: ""; position: absolute; left: .52rem; top: 1.15rem; bottom: 0;
+  width: 2px; background: var(--pw-border);
+}
+.timeline-item:last-child::before { display: none; }
+.timeline-dot {
+  position: absolute; left: 0; top: .15rem;
+  width: 1.1rem; height: 1.1rem; border-radius: 50%;
+  display: grid; place-items: center; font-size: .6rem;
+  background: #eef2f6; color: #64748b;
+}
+.timeline-dot.ok { background: #e7f7ee; color: #15803d; }
+
+.cliente-hero {
+  position: relative; overflow: hidden;
+  border-radius: var(--pw-radius);
+  background: linear-gradient(115deg, rgba(10, 95, 105, .94) 0%, rgba(15, 23, 42, .68) 100%),
+              url("/media/alojamientos/wayra-fondo.jpg") center/cover no-repeat;
+  color: #fff;
+  padding: 2.25rem;
+  box-shadow: var(--pw-shadow);
+}
+.cliente-hero .hero-lead { color: rgba(255, 255, 255, .84); max-width: 640px; }
+.hero-feature {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .7rem .85rem; border-radius: 12px;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .18);
+}
+.hero-feature i { font-size: 1.25rem; color: #fbbf24; flex-shrink: 0; }
+.hero-feature strong { display: block; font-size: .8rem; color: #fff; }
+.hero-feature span { font-size: .7rem; color: rgba(255, 255, 255, .72); }
+
+.pw-aviso-pago {
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+  border-radius: .75rem;
+  padding: .9rem 1rem;
+  font-size: .85rem;
+  color: #78350f;
+}
+
+.wayra-swal { border-radius: 1rem !important; font-family: 'Inter', sans-serif; }
+.wayra-toast { font-family: 'Inter', sans-serif; }
+
+
+/* ==========================================================================
+   PORTAL PÚBLICO · TEMA CLARO (Estilo Posada Wayra)
+   ========================================================================== */
+:root {
+  --pw-accent: #1aa9b5;
+  --pw-accent-dark: #0f7d8a;
+  --pw-accent-soft: #dff8f9;
+  --pw-band: #f7f1e7;
+  --pw-dark: #111111;
+}
+
+/* Fondo principal claro (Arena / Crema) */
+.pw-publico { 
+  background-color: var(--wayra-arena, #fbf7f1) !important; 
+  color: var(--wayra-tinta, #263238); 
+}
+
+/* ---- Navbar ---- */
+.pw-publico .pw-navbar {
+  background: var(--wayra-mar-oscuro, #0a5f69) !important;
+  box-shadow: 0 2px 10px rgba(10, 95, 105, 0.18);
+  border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 1035;
+}
+.pw-nav-wrap { padding-top: .35rem; padding-bottom: .35rem; }
+.pw-brand {
+  display: flex; align-items: center; gap: .6rem;
+  color: #fff !important; font-weight: 800; letter-spacing: .6px;
+  text-transform: uppercase; font-size: 1.1rem;
+}
+.pw-brand img { height: 30px; width: 30px; object-fit: contain; }
+.pw-public-nav .nav-link {
+  color: rgba(255, 255, 255, .88);
+  font-size: .72rem; font-weight: 600; letter-spacing: .7px;
+  text-transform: uppercase;
+  padding: .5rem .15rem !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.pw-public-nav .nav-link:hover,
+.pw-public-nav .nav-link.active { color: #fff; }
+.pw-public-nav .nav-link.active { box-shadow: inset 0 -2px 0 var(--pw-accent); }
+.pw-public-nav .pw-nav-login { display: inline-flex; align-items: center; gap: .4rem; }
+.pw-public-nav .pw-nav-login i { color: var(--pw-accent); font-size: .95rem; }
+.pw-public-nav .navbar-toggler { border-color: rgba(255, 255, 255, .35); }
+.pw-sunburst { display: block; width: 54px; height: 36px; color: var(--pw-accent); margin-bottom: 1.3rem; }
+.pw-sunburst.sm { width: 42px; height: 28px; margin-bottom: 1rem; }
+
+/* ---- Páginas públicas internas (Paneles y Formularios Claros) ---- */
+.pw-publico .page-title { color: var(--pw-ink, #0f172a) !important; }
+.pw-publico .page-subtitle { color: var(--pw-muted, #64748b) !important; }
+.pw-publico .icon-tile { background: var(--wayra-mar-claro, #e6f3f4); color: var(--pw-accent); }
+
+/* Paneles y tarjetas en blanco */
+.pw-publico .panel { 
+  background: #ffffff !important; 
+  border-color: var(--pw-border, #e3e9ee) !important; 
+  color: var(--pw-ink, #0f172a) !important; 
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important; 
+}
+.pw-publico .panel-head { border-bottom-color: var(--pw-border, #e3e9ee) !important; }
+.pw-publico .panel-title { color: var(--pw-ink, #0f172a) !important; }
+.pw-publico .panel .text-muted { color: var(--pw-muted, #64748b) !important; }
+.pw-publico .text-dark { color: #0f172a !important; }
+
+/* Barra de herramientas y filtros en blanco */
+.pw-publico .toolbar { 
+  background: #ffffff !important; 
+  border-color: var(--pw-border, #e3e9ee) !important; 
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important;
+}
+.pw-publico .form-label { color: #3f4d5a !important; }
+.pw-publico .form-text { color: var(--pw-muted, #64748b) !important; }
+
+/* Inputs y Selects */
+.pw-publico .form-control, 
+.pw-publico .form-select { 
+  background: #ffffff !important; 
+  border-color: #cbd5e1 !important; 
+  color: #0f172a !important; 
+  color-scheme: light !important; 
+}
+.pw-publico .form-control:focus, 
+.pw-publico .form-select:focus { 
+  background: #ffffff !important; 
+  color: #0f172a !important; 
+  border-color: var(--pw-accent) !important; 
+  box-shadow: 0 0 0 0.2rem rgba(26, 169, 181, 0.25) !important; 
+}
+.pw-publico .toolbar .bg-white { background: #ffffff !important; color: #0f172a !important; }
+
+/* Botones */
+.pw-publico .btn-primary {
+  --bs-btn-bg: var(--pw-accent); 
+  --bs-btn-border-color: var(--pw-accent);
+  --bs-btn-hover-bg: var(--pw-accent-dark); 
+  --bs-btn-hover-border-color: var(--pw-accent-dark);
+  --bs-btn-active-bg: var(--pw-accent-dark); 
+  --bs-btn-active-border-color: var(--pw-accent-dark);
+  --bs-btn-disabled-bg: var(--pw-accent); 
+  --bs-btn-disabled-border-color: var(--pw-accent);
+}
+.pw-publico .btn-light { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+.pw-publico .btn-light:hover { background: #e2e8f0; color: #0f172a; }
+.pw-publico .btn-outline-secondary { color: #475569; border-color: #cbd5e1; }
+.pw-publico .btn-outline-secondary:hover { background: #f1f5f9; color: #0f172a; }
+
+/* Detalles adicionales */
+.pw-publico .pill-info { background: #e8f4fd; color: #1d7fc4; }
+.pw-publico .border-top, .pw-publico .border-bottom { border-color: #e2e8f0 !important; }
+.pw-publico .pw-price { color: var(--wayra-mar, #0f7d8a) !important; }
+
+/* Paginación y Footer */
+.pw-publico .pagination .page-link { background: #ffffff; border-color: #e2e8f0; color: #334155; }
+.pw-publico .pagination .active .page-link { background: var(--pw-accent); border-color: var(--pw-accent); color: #fff; }
+.pw-publico footer { background: #ffffff !important; border-top: 1px solid #e2e8f0 !important; }
+.pw-publico footer .text-muted { color: #64748b !important; }
+.pw-publico footer .fw-semibold { color: #0f172a !important; }
+.pw-publico footer i { color: var(--pw-accent); }
+
+/* ---- Login ---- */
+.pagina-login .pw-navbar { background: #0a0a0a !important; box-shadow: none; border-bottom: 1px solid rgba(255, 255, 255, .08); }
+.pagina-login footer { background: #ffffff !important; border-top: 1px solid #e2e8f0 !important; }
+.pagina-login footer .text-muted { color: #64748b !important; }
+.pagina-login footer .fw-semibold { color: #0f172a !important; }
+
+@media (max-width: 991.98px) {
+  .pw-public-nav .navbar-collapse {
+    background: #0a0a0a;
+    margin: .75rem -1rem -.35rem;
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+  }
+  .pw-public-nav .navbar-nav { gap: .35rem !important; }
+  .pw-public-nav .nav-link { padding: .6rem 0 !important; font-size: .8rem; }
+}
+
+
+
+
+
+
+
+/* ---- Impresión ---- */
+@media print {
+  .top-navbar, .app-sidebar, .bottom-sticky-bar, .pw-navbar, footer, .no-print { display: none !important; }
+  .app-main { margin: 0 !important; padding: 0 !important; }
+  body { background: #fff !important; }
+  .panel, .card { box-shadow: none !important; border-color: #ddd !important; }
+}
+.app-footer { margin-left: 250px; }
+@media (max-width: 991.98px) {
+    .app-footer { margin-left: 0; }
+}
+
+@keyframes pwPopIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.pw-room-disabled { filter: grayscale(85%); }.pw-room-thumb:focus-visible { outline: 3px solid var(--wayra-mar); outline-offset: 2px; }
+.pw-room-thumb { width: 88px; height: 64px; flex: 0 0 88px; padding: 0; overflow: hidden; border: 2px solid #dbe4e8; border-radius: 8px; background: #fff; }
+.pw-room-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pw-room-gallery-image { display: block; width: 100%; height: min(70dvh, 680px); object-fit: contain; }
+

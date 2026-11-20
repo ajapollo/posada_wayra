@@ -1,0 +1,52 @@
+<!-- Navegación de gestión compartida, solo fuera del contexto público. -->
+<header class="top-navbar d-flex align-items-center justify-content-between px-4">
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-light border d-lg-none" type="button" aria-label="Abrir menú" data-sidebar-toggle aria-expanded="false"><i class="bi bi-list fs-5"></i></button>
+        <div class="search-box-top d-none d-md-flex align-items-center gap-2">
+            <i class="bi bi-search text-muted"></i>
+            <input type="search" placeholder="Buscar reservas, huéspedes, habitaciones..." aria-label="Buscar en la página" data-staff-search>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'disponibilidad' %}" class="btn btn-sm btn-light border position-relative" title="Llegadas y salidas del día"><i class="bi bi-bell text-muted"></i></a>
+        <a href="{% url 'perfil' %}" class="d-flex align-items-center gap-2 text-decoration-none" title="Mi perfil">
+            {% if user.avatar %}
+            <img src="{{ MEDIA_URL }}{{ user.avatar.name }}" alt="Foto de {{ user.get_full_name|default:user.username }}" class="rounded-circle object-fit-cover border" style="width:38px;height:38px;">
+            {% else %}
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:38px;height:38px;font-size:.9rem;">{{ user.iniciales|default:user.username|slice:":2"|upper }}</div>
+            {% endif %}
+            <div class="d-none d-sm-block text-end"><strong class="d-block text-dark small">{{ user.get_full_name|default:user.username }}</strong><span class="text-muted extra-small">{{ user.rol.get_nombre_display|default:"Administrador" }}</span></div>
+        </a>
+        <form action="{% url 'logout' %}" method="post" class="m-0 ms-1">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary btn-sm rounded-circle p-2" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button></form>
+    </div>
+</header>
+<aside class="app-sidebar" id="menuGestion">
+    <div class="sidebar-brand d-flex align-items-center gap-2">
+        {% if hotel.logo %}<img src="{{ MEDIA_URL }}{{ hotel.logo.name }}" alt="Logo {{ hotel.nombre }}" class="rounded-2 object-fit-contain bg-white border" style="width:38px;height:38px;">{% else %}<i class="bi bi-water fs-3" aria-hidden="true"></i>{% endif %}
+        <div><strong class="d-block text-dark fw-bold h6 mb-0">{{ hotel.nombre|default:"Posada Wayra" }}</strong><span class="text-muted extra-small" style="font-size:.68rem;">{{ hotel.ciudad|default:"RIOHACHA"|upper }} · {{ hotel.departamento|default:"LA GUAJIRA"|upper }}</span></div>
+    </div>
+    <div class="sidebar-section-title">Visión general</div>
+    <a href="{% url 'home' %}" class="sidebar-link {% if actual == 'home' %}active{% endif %}"><i class="bi bi-house-door"></i> Inicio</a>
+    <a href="{% url 'rutina_dia' %}" class="sidebar-link {% if actual == 'rutina_dia' %}active{% endif %}"><i class="bi bi-sunrise"></i> Rutina del día</a>
+    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' or user.rol.nombre == 'GERENTE' %}<a href="{% url 'dashboard' %}" class="sidebar-link {% if actual == 'dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>{% endif %}
+    <div class="sidebar-section-title">Operación</div>
+    <a href="{% url 'listar_reservas' %}" class="sidebar-link {% if actual == 'listar_reservas' or actual == 'ver_reserva' or actual == 'registrar_reserva' or actual == 'editar_reserva' %}active{% endif %}"><i class="bi bi-calendar-event"></i> Reservas</a>
+    <a href="{% url 'disponibilidad' %}" class="sidebar-link {% if actual == 'disponibilidad' %}active{% endif %}"><i class="bi bi-arrow-left-right"></i> Check-in / Check-out</a>
+    <a href="{% url 'listar_huespedes' %}" class="sidebar-link {% if actual == 'listar_huespedes' or actual == 'registrar_huesped' or actual == 'editar_huesped' %}active{% endif %}"><i class="bi bi-person-badge"></i> Huéspedes</a>
+    <a href="{% url 'pagos' %}" class="sidebar-link {% if actual == 'pagos' or actual == 'registrar_pago' %}active{% endif %}"><i class="bi bi-credit-card"></i> Pagos y abonos</a>
+    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' or user.rol.nombre == 'GERENTE' %}<a href="{% url 'reportes_index' %}" class="sidebar-link {% if actual == 'reportes_index' or actual == 'reporte_reservas' or actual == 'reporte_ocupacion' or actual == 'reporte_ingresos' or actual == 'reporte_huespedes' or actual == 'reporte_habitaciones' or actual == 'reporte_servicios' %}active{% endif %}"><i class="bi bi-bar-chart-line"></i> Reportes</a>{% endif %}
+    <div class="sidebar-section-title">Inventario</div>
+    <a href="{% url 'listar_habitaciones' %}" class="sidebar-link {% if actual == 'listar_habitaciones' or actual == 'registrar_habitacion' or actual == 'editar_habitacion' %}active{% endif %}"><i class="bi bi-door-open"></i> Habitaciones</a>
+    <a href="{% url 'listar_tipos' %}" class="sidebar-link {% if actual == 'listar_tipos' or actual == 'registrar_tipo' or actual == 'editar_tipo' %}active{% endif %}"><i class="bi bi-tags"></i> Tipos de habitación</a>
+    <a href="{% url 'listar_servicios' %}" class="sidebar-link {% if actual == 'listar_servicios' or actual == 'registrar_servicio' or actual == 'editar_servicio' %}active{% endif %}"><i class="bi bi-stars"></i> Servicios</a>
+    <a href="{% url 'listar_alojamientos' %}" class="sidebar-link {% if actual == 'listar_alojamientos' or actual == 'registrar_alojamiento' or actual == 'editar_alojamiento' or actual == 'ver_alojamiento' %}active{% endif %}"><i class="bi bi-building"></i> Alojamiento</a>
+    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' or user.rol.nombre == 'GERENTE' %}<div class="sidebar-section-title">Establecimiento</div><a href="{% url 'configuracion_hotel' %}" class="sidebar-link {% if actual == 'configuracion_hotel' %}active{% endif %}"><i class="bi bi-gear-wide-connected"></i> Configuración del hotel</a>{% endif %}
+    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+    <div class="sidebar-section-title">Administración</div>
+    <a href="{% url 'listar_usuarios' %}" class="sidebar-link {% if actual == 'listar_usuarios' or actual == 'registrar_usuario' or actual == 'editar_usuario' %}active{% endif %}"><i class="bi bi-people"></i> Usuarios</a>
+    <a href="{% url 'listar_roles' %}" class="sidebar-link {% if actual == 'listar_roles' or actual == 'registrar_rol' or actual == 'editar_rol' %}active{% endif %}"><i class="bi bi-shield-check"></i> Roles</a>
+    <a href="{% url 'matriz_permisos' %}" class="sidebar-link {% if actual == 'matriz_permisos' %}active{% endif %}"><i class="bi bi-shield-lock"></i> Matriz de permisos</a>
+    {% endif %}
+    <div class="pt-4 px-2 mt-3"><div class="p-3 rounded-4 bg-light text-muted extra-small text-center"><span class="d-block fw-bold" style="color:var(--wayra-mar);">La Guajira te espera <i class="bi bi-water" aria-hidden="true"></i></span></div></div>
+</aside>
+<main class="app-main">

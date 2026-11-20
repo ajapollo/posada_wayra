@@ -1,0 +1,278 @@
+{% load hotel_extras %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile ok"><i class="bi bi-credit-card"></i></div>
+        <div>
+            <h1 class="page-title">Pagos y abonos</h1>
+            <p class="page-subtitle">Registra abonos, consulta saldos pendientes y revisa el historial de recaudos.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        {% if puede_registrar and reservas_con_saldo %}
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold"
+                data-bs-toggle="collapse" data-bs-target="#formPagoRapido">
+            <i class="bi bi-plus-lg me-1"></i> Registrar abono
+        </button>
+        {% endif %}
+        {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' or user.rol.nombre == 'GERENTE' %}
+        <a href="{% url 'reporte_ingresos' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-graph-up me-1"></i> Reporte de ingresos
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Recaudado en el periodo</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ total_periodo|pesos }}</p>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-cash"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Histórico total</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ total_historico|pesos }}</p>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-graph-up-arrow"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Saldo por cobrar</span>
+                    <p class="kpi-value" style="font-size:1.25rem;">{{ saldo_pendiente|pesos }}</p>
+                </div>
+                <div class="icon-tile sm sol"><i class="bi bi-clock-history"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Reservas con saldo</span>
+                    <p class="kpi-value">{{ reservas_con_saldo|length }}</p>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-calendar-check"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if puede_registrar and reservas_con_saldo %}
+<div class="collapse mb-4" id="formPagoRapido">
+    <div class="panel form-panel">
+        <div class="panel-head">
+            <h2 class="panel-title"><i class="bi bi-plus-circle"></i> Registrar abono a una reserva</h2>
+        </div>
+        <div class="panel-body">
+            <form method="post" class="row g-3 align-items-end">
+                {% csrf_token %}
+                <div class="col-12 col-lg-4">
+                    <label class="form-label" for="pagoReserva">Reserva con saldo *</label>
+                    <select id="pagoReserva" name="reserva" class="form-select" required>
+                        <option value="">Selecciona una reserva...</option>
+                        {% for r in reservas_con_saldo %}
+                        <option value="{{ r.id }}">#{{ r.id }} · {{ r.huesped.nombre }} {{ r.huesped.apellido }} · Hab. {{ r.habitacion.numero }} · Saldo {{ r.saldo_pendiente|pesos }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label" for="pagoMonto">Monto *</label>
+                    <input type="number" id="pagoMonto" name="monto" class="form-control" min="0.01" step="0.01" placeholder="0" required>
+                </div>
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label" for="pagoMetodo">Método *</label>
+                    <select id="pagoMetodo" name="metodo_pago" class="form-select" required>
+                        {% for valor, etiqueta in metodos %}
+                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label" for="pagoComprobante">Comprobante</label>
+                    <input type="text" id="pagoComprobante" name="comprobante" class="form-control" maxlength="100" placeholder="Opcional">
+                </div>
+                <div class="col-12 col-lg-2">
+                    <button type="submit" class="btn btn-success w-100 rounded-3 fw-semibold">
+                        <i class="bi bi-check2 me-1"></i> Guardar
+                    </button>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="pagoObservacion">Observación</label>
+                    <input type="text" id="pagoObservacion" name="observacion" class="form-control form-control-sm" placeholder="Detalle del abono (opcional)">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-wallet2"></i> Recaudo por método</h2>
+                <span class="extra-small text-muted">Periodo seleccionado</span>
+            </div>
+            <div class="panel-body">
+                {% for etiqueta, total in por_metodo %}
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <span class="text-muted">{{ etiqueta }}</span>
+                    <strong class="text-dark">{{ total|pesos }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-list-check"></i> Reservas con saldo</h2>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex flex-column gap-2">
+                    {% for r in reservas_con_saldo|slice:":5" %}
+                    <a href="{% url 'ver_reserva' r.id %}" class="d-flex justify-content-between align-items-center gap-2 p-2 rounded-3 bg-light text-decoration-none">
+                        <div>
+                            <strong class="d-block extra-small text-dark">#{{ r.id }} · {{ r.huesped.nombre }} {{ r.huesped.apellido }}</strong>
+                            <span class="text-muted extra-small">Hab. {{ r.habitacion.numero }}</span>
+                        </div>
+                        <span class="pill pill-warning">{{ r.saldo_pendiente|pesos }}</span>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted extra-small text-center py-2 mb-0">Todas las reservas activas están pagadas.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+            <label class="form-label" for="pagoBuscar">Buscar</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="pagoBuscar" name="buscar" value="{{ buscar }}" class="form-control" placeholder="Huésped, documento, habitación o comprobante">
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="pagoFiltroMetodo">Método</label>
+            <select id="pagoFiltroMetodo" name="metodo" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for valor, etiqueta in metodos %}
+                <option value="{{ valor }}" {% if metodo == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="pagoPeriodo">Periodo</label>
+            <select id="pagoPeriodo" name="periodo" class="form-select form-select-sm">
+                <option value="historico" {% if periodo == 'historico' %}selected{% endif %}>Histórico</option>
+                <option value="hoy" {% if periodo == 'hoy' %}selected{% endif %}>Hoy</option>
+                <option value="mes" {% if periodo == 'mes' %}selected{% endif %}>Este mes</option>
+                <option value="rango" {% if periodo == 'rango' %}selected{% endif %}>Rango</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="pagoDesde">Desde</label>
+            <input type="date" id="pagoDesde" name="fecha_desde" value="{{ fecha_desde }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="pagoHasta">Hasta</label>
+            <input type="date" id="pagoHasta" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold">Filtrar</button>
+            {% if buscar or metodo or periodo != 'historico' %}
+            <a href="{% url 'pagos' %}" class="btn btn-light border btn-sm rounded-3">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-list-ul"></i> Historial de pagos</h2>
+        <span class="pill pill-secondary">{{ pagos.paginator.count }} registro{{ pagos.paginator.count|pluralize }}</span>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Reserva</th>
+                    <th>Huésped</th>
+                    <th>Método</th>
+                    <th>Comprobante</th>
+                    <th>Monto</th>
+                    <th class="col-acciones">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td class="text-muted extra-small">{{ p.fecha_pago|date:"d/m/Y H:i" }}</td>
+                    <td><strong class="text-dark">#{{ p.reserva.id }}</strong><span class="d-block text-muted extra-small">Hab. {{ p.reserva.habitacion.numero }}</span></td>
+                    <td>
+                        <strong class="d-block text-dark">{{ p.reserva.huesped.nombre }} {{ p.reserva.huesped.apellido }}</strong>
+                        <span class="text-muted extra-small">{{ p.reserva.huesped.numero_documento }}</span>
+                    </td>
+                    <td>
+                        {% if p.metodo_pago == 'TRANSFERENCIA' %}
+                        <span class="pill pill-success">Transferencia</span>
+                        {% elif p.metodo_pago == 'EFECTIVO' %}
+                        <span class="pill pill-warning">Efectivo</span>
+                        {% else %}
+                        <span class="pill pill-info">Tarjeta</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted extra-small">{{ p.comprobante|default:"—" }}</td>
+                    <td class="fw-semibold text-success">{{ p.monto|pesos }}</td>
+                    <td class="col-acciones">
+                        <a href="{% url 'ver_reserva' p.reserva.id %}" class="btn btn-sm btn-light border rounded-3" title="Ver reserva">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if puede_registrar %}
+                        <form method="post" action="{% url 'eliminar_pago' p.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3"
+                           data-confirm="El pago se eliminará del historial y el saldo de la reserva se recalculará."
+                           data-titulo="Eliminar pago" data-accion="Sí, eliminar" title="Eliminar" aria-label="Eliminar pago {{ p.id }}">
+                            <i class="bi bi-trash"></i>
+                        </button></form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-cash-stack"></i>
+                            <p>No hay pagos registrados con los filtros seleccionados.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4 pt-2">
+        {% include 'publico/inc/paginacion.html' with pagina=pagos %}
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

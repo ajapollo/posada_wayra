@@ -1,0 +1,456 @@
+{% load static hotel_extras l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-journal-text"></i></div>
+        <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="page-title">Reserva #{{ reserva.id }}</h1>
+                {% if reserva.estado == 'PENDIENTE' %}
+                <span class="pill pill-warning"><i class="bi bi-clock-history"></i> Pendiente</span>
+                {% elif reserva.estado == 'CONFIRMADA' %}
+                <span class="pill pill-success"><i class="bi bi-check-circle-fill"></i> Confirmada</span>
+                {% elif reserva.estado == 'EN_ESTADIA' %}
+                <span class="pill pill-info"><i class="bi bi-house-door-fill"></i> En estadía</span>
+                {% elif reserva.estado == 'CANCELADA' %}
+                <span class="pill pill-danger"><i class="bi bi-x-circle-fill"></i> Cancelada</span>
+                {% else %}
+                <span class="pill pill-secondary"><i class="bi bi-flag-fill"></i> Finalizada</span>
+                {% endif %}
+            </div>
+            <p class="page-subtitle">Creada el {{ reserva.fecha_creacion|date:"d/m/Y H:i" }} · Habitación {{ reserva.habitacion.numero }}</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'listar_reservas' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reservas
+        </a>
+        {% if reserva.estado == 'PENDIENTE' %}
+        <form method="post" action="{% url 'confirmar_reserva' reserva.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold"
+           data-confirm="Para garantizar la reserva se requiere abonar mínimo 1 noche. Si el huésped no se presenta el primer día pactado, la reserva se cancela automáticamente sin derecho a reembolso."
+           data-titulo="Confirmar reserva" data-accion="Sí, confirmar">
+            <i class="bi bi-check-lg me-1"></i> Confirmar
+        </button></form>
+        {% endif %}
+        {% if reserva.estado == 'CONFIRMADA' and not reserva.fecha_checkin %}
+        <form method="post" action="{% url 'checkin_reserva' reserva.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn btn-dark btn-sm rounded-3 fw-semibold"
+           data-confirm="Se registrará el ingreso del huésped y la habitación quedará ocupada."
+           data-titulo="Registrar Check-in" data-accion="Sí, registrar llegada">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Check-in
+        </button></form>
+        {% endif %}
+        {% if reserva.fecha_checkin and not reserva.fecha_checkout %}
+        <form method="post" action="{% url 'checkout_reserva' reserva.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn btn-warning btn-sm rounded-3 fw-semibold text-dark"
+           data-checkout data-saldo="{{ reserva.saldo_pendiente|unlocalize }}"
+           data-habitacion="{{ reserva.habitacion.numero }}"
+           aria-disabled="{% if reserva.saldo_pendiente > 0 %}true{% else %}false{% endif %}"
+           data-url="{% url 'checkout_reserva' reserva.id %}">
+            <i class="bi bi-box-arrow-right me-1"></i> Check-out
+        </button></form>
+        {% endif %}
+        {% if reserva.estado != 'CANCELADA' and reserva.estado != 'FINALIZADA' %}
+        <a href="{% url 'editar_reserva' reserva.id %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+        <form method="post" action="{% url 'cancelar_reserva' reserva.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn {% if reserva.cancelacion_solicitada %}btn-danger text-white fw-semibold{% else %}btn-light border text-danger{% endif %} btn-sm rounded-3"
+           data-confirm="La reserva quedará cancelada y la habitación se liberará."
+           data-titulo="{% if reserva.cancelacion_solicitada %}Aprobar cancelación{% else %}Cancelar reserva{% endif %}"
+           data-accion="Sí, cancelar">
+            <i class="bi bi-x-circle me-1"></i> {% if reserva.cancelacion_solicitada %}Aprobar cancelación{% else %}Cancelar{% endif %}
+        </button></form>
+        {% endif %}
+    </div>
+</div>
+
+{% if reserva.cancelacion_solicitada and reserva.estado != 'CANCELADA' %}
+<div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 shadow-sm" role="alert">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div>
+            <strong class="d-block">Solicitud de cancelación del huésped</strong>
+            <span class="small">El cliente ha solicitado cancelar esta reserva. Verifica los abonos registrados ({{ reserva.total_pagado|pesos }}) antes de aprobar la cancelación.</span>
+        </div>
+    </div>
+    <form method="post" action="{% url 'cancelar_reserva' reserva.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-danger btn-sm rounded-3 fw-semibold"
+       data-confirm="La reserva #{{ reserva.id }} quedará cancelada y la habitación {{ reserva.habitacion.numero }} volverá a estar disponible."
+       data-titulo="Confirmar cancelación solicitada" data-accion="Sí, aprobar cancelación">
+        <i class="bi bi-check2-circle me-1"></i> Aprobar cancelación
+    </button></form>
+</div>
+{% endif %}
+
+<div class="panel mb-3">
+    <div class="panel-body d-flex flex-wrap align-items-center gap-3">
+        {% if hotel.logo %}
+        <img src="{{ MEDIA_URL }}{{ hotel.logo.name }}" alt="Logo {{ hotel.nombre }}" class="rounded-2 border bg-white p-1" style="width: 46px; height: 46px; object-fit: contain;">
+        {% else %}
+        <div class="icon-tile sm"><i class="bi bi-water"></i></div>
+        {% endif %}
+        <div class="me-auto">
+            <strong class="d-block text-dark">{{ hotel.nombre|default:"Posada Wayra" }}</strong>
+            <span class="text-muted extra-small">{{ hotel.direccion_completa }}</span>
+        </div>
+        <div class="extra-small text-muted">
+            <span class="d-block"><i class="bi bi-telephone me-1"></i>{{ hotel.telefono }}</span>
+            <span class="d-block"><i class="bi bi-envelope me-1"></i>{{ hotel.email }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-lg-5">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-5">
+                        <div class="room-photo rounded-3 border h-100" style="min-height:170px;">
+                            <img src="{% if reserva.habitacion.imagen %}{{ MEDIA_URL }}{{ reserva.habitacion.imagen.name }}{% else %}{{ MEDIA_URL }}habitaciones/default.jpg{% endif %}"
+                                 data-fallback="{{ MEDIA_URL }}habitaciones/default.jpg"
+                                 onerror="this.onerror=null; this.src=this.dataset.fallback;"
+                                 alt="Habitación {{ reserva.habitacion.numero }}">
+                            <div class="room-photo-caption">
+                                <div class="fw-bold extra-small">Hab. {{ reserva.habitacion.numero }}</div>
+                                <div class="extra-small opacity-75">{{ reserva.habitacion.tipo.nombre }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-7">
+                        <h2 class="panel-title mb-3"><i class="bi bi-calendar3"></i> Estancia</h2>
+                        <div class="extra-small mb-2">
+                            <span class="text-muted d-block"><i class="bi bi-box-arrow-in-right me-1"></i> Entrada</span>
+                            <strong class="text-dark">{{ reserva.fecha_inicio|date:"d/m/Y" }}</strong>
+                        </div>
+                        <div class="extra-small mb-2">
+                            <span class="text-muted d-block"><i class="bi bi-box-arrow-right me-1"></i> Salida</span>
+                            <strong class="text-dark">{{ reserva.fecha_fin|date:"d/m/Y" }}</strong>
+                        </div>
+                        <div class="extra-small">
+                            <span class="text-muted d-block"><i class="bi bi-moon-stars me-1"></i> Duración</span>
+                            <strong class="text-dark">{{ reserva.noches }} noche{{ reserva.noches|pluralize }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-3">
+        <div class="panel h-100">
+            <div class="panel-body d-flex flex-column">
+                <h2 class="panel-title mb-3"><i class="bi bi-person"></i> Huésped</h2>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="avatar-sm">{{ reserva.huesped.nombre|slice:":1"|upper }}{{ reserva.huesped.apellido|slice:":1"|upper }}</span>
+                    <strong class="text-dark">{{ reserva.huesped.nombre }} {{ reserva.huesped.apellido }}</strong>
+                </div>
+                <div class="extra-small text-muted">
+                    <span class="d-block"><i class="bi bi-card-heading me-1"></i>{{ reserva.huesped.get_tipo_documento_display }}: {{ reserva.huesped.numero_documento }}</span>
+                    <span class="d-block"><i class="bi bi-telephone me-1"></i>{{ reserva.huesped.telefono|default:"Sin teléfono" }}</span>
+                    <span class="d-block"><i class="bi bi-envelope me-1"></i>{{ reserva.huesped.email|default:"Sin correo" }}</span>
+                </div>
+                <div class="border-top pt-2 mt-auto extra-small">
+                    <span class="text-muted"><i class="bi bi-people me-1"></i> Huéspedes:</span>
+                    <strong class="text-dark">{{ reserva.num_personas }} de {{ reserva.habitacion.capacidad }} persona{{ reserva.habitacion.capacidad|pluralize }}</strong>
+                    {% if reserva.num_adultos == None or reserva.num_ninos == None %}<span class="d-block text-warning">Reserva histórica sin desglose de adultos y niños.</span>{% else %}<span class="d-block">{{ reserva.num_adultos }} adulto{{ reserva.num_adultos|pluralize }} · {{ reserva.num_ninos }} niño{{ reserva.num_ninos|pluralize }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <h2 class="panel-title mb-3"><i class="bi bi-receipt"></i> Resumen de la reserva</h2>
+                <div class="d-flex justify-content-between extra-small mb-2">
+                    <span class="text-muted">Habitación ({{ reserva.noches }} noche{{ reserva.noches|pluralize }})</span>
+                    <strong class="text-dark">{{ reserva.valor_habitacion_total|pesos }}</strong>
+                </div>
+                <div class="d-flex justify-content-between extra-small mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Servicios adicionales</span>
+                    <strong class="text-dark">{{ reserva.valor_servicios_total|pesos }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark">Total general</span>
+                    <strong class="fs-5 text-dark">{{ reserva.gran_total|pesos }}</strong>
+                </div>
+                <div class="d-flex justify-content-between extra-small mb-1">
+                    <span class="text-success fw-semibold">Pagado</span>
+                    <strong class="text-success">{{ reserva.total_pagado|pesos }}</strong>
+                </div>
+                <div class="d-flex justify-content-between extra-small align-items-center">
+                    <span class="text-warning fw-semibold">Saldo pendiente</span>
+                    {% if reserva.saldo_pendiente > 0 %}
+                    <strong class="text-warning">{{ reserva.saldo_pendiente|pesos }}</strong>
+                    {% else %}
+                    <span class="pill pill-success"><i class="bi bi-check2"></i> Pagado</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <h2 class="panel-title mb-3"><i class="bi bi-card-text"></i> Datos del huésped</h2>
+                <dl class="row mb-0 extra-small">
+                    <dt class="col-5 text-muted fw-normal">Documento</dt>
+                    <dd class="col-7 fw-semibold text-dark">{{ reserva.huesped.numero_documento }}</dd>
+                    <dt class="col-5 text-muted fw-normal">Teléfono</dt>
+                    <dd class="col-7 fw-semibold text-dark">{{ reserva.huesped.telefono|default:"—" }}</dd>
+                    <dt class="col-5 text-muted fw-normal">Correo</dt>
+                    <dd class="col-7 fw-semibold text-dark">{{ reserva.huesped.email|default:"—" }}</dd>
+                    <dt class="col-5 text-muted fw-normal">Dirección</dt>
+                    <dd class="col-7 fw-semibold text-dark">{{ reserva.huesped.direccion|default:"—" }}</dd>
+                    <dt class="col-5 text-muted fw-normal">Residencia</dt>
+                    <dd class="col-7 fw-semibold text-dark">{{ reserva.huesped.ciudad_residencia|default:"—" }}{% if reserva.huesped.pais_residencia %}, {{ reserva.huesped.pais_residencia }}{% endif %}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <h2 class="panel-title mb-3"><i class="bi bi-wallet2"></i> Pagos</h2>
+                {% with ultimo=pagos.0 %}
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Último método</span>
+                    {% if ultimo %}
+                    <span class="pill pill-info"><i class="bi bi-credit-card"></i> {{ ultimo.get_metodo_pago_display }}</span>
+                    {% else %}
+                    <span class="pill pill-secondary">Sin pagos</span>
+                    {% endif %}
+                </div>
+                {% if ultimo.comprobante %}
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Comprobante</span>
+                    <span class="fw-semibold text-dark">{{ ultimo.comprobante }}</span>
+                </div>
+                {% endif %}
+                {% endwith %}
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2">
+                    <span class="text-muted">Abono / pagado</span>
+                    <strong class="text-success">{{ reserva.total_pagado|pesos }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2">
+                    <span class="text-muted">Saldo pendiente</span>
+                    <strong class="text-warning">{{ reserva.saldo_pendiente|pesos }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center extra-small">
+                    <span class="text-muted">Estado del pago</span>
+                    {% if reserva.saldo_pendiente <= 0 %}
+                    <span class="pill pill-success"><i class="bi bi-check-circle-fill"></i> Pagado 100%</span>
+                    {% else %}
+                    <span class="pill pill-warning"><i class="bi bi-clock"></i> Saldo pendiente</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <h2 class="panel-title mb-3"><i class="bi bi-clock-history"></i> Estado de la reserva</h2>
+                <div class="timeline-item">
+                    <span class="timeline-dot {% if reserva.estado != 'PENDIENTE' %}ok{% endif %}"><i class="bi bi-check"></i></span>
+                    <strong class="extra-small d-block text-dark">Reserva creada</strong>
+                    <span class="text-muted extra-small">{{ reserva.fecha_creacion|date:"d M Y · H:i" }}</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-dot {% if reserva.fecha_checkin %}ok{% endif %}"><i class="bi bi-check"></i></span>
+                    <strong class="extra-small d-block text-dark">{% if reserva.fecha_checkin %}Check-in realizado{% else %}Check-in pendiente{% endif %}</strong>
+                    <span class="text-muted extra-small">
+                        {% if reserva.fecha_checkin %}{{ reserva.fecha_checkin|date:"d M Y · H:i" }}{% else %}{{ reserva.fecha_inicio|date:"d M Y" }}{% endif %}
+                    </span>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-dot {% if reserva.fecha_checkout %}ok{% endif %}"><i class="bi bi-check"></i></span>
+                    <strong class="extra-small d-block text-dark">{% if reserva.fecha_checkout %}Check-out completado{% else %}Check-out pendiente{% endif %}</strong>
+                    <span class="text-muted extra-small">
+                        {% if reserva.fecha_checkout %}{{ reserva.fecha_checkout|date:"d M Y · H:i" }}{% else %}{{ reserva.fecha_fin|date:"d M Y" }}{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel mb-3">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-bag-plus"></i> Servicios adicionales</h2>
+        <span class="pill pill-secondary">{{ servicios_reserva|length }} registro{{ servicios_reserva|length|pluralize }}</span>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Servicio</th>
+                    <th>Precio unitario</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th class="col-acciones">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sr in servicios_reserva %}
+                <tr>
+                    <td class="fw-semibold text-dark">{{ sr.servicio.nombre }}</td>
+                    <td>{{ sr.servicio.precio|pesos }}</td>
+                    <td>{{ sr.cantidad }}</td>
+                    <td class="fw-semibold text-dark">{{ sr.subtotal|pesos }}</td>
+                    <td class="col-acciones">
+                        {% if not reserva.fecha_checkout and reserva.estado != 'CANCELADA' %}
+                        <form method="post" action="{% url 'eliminar_servicio_reserva' sr.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3" aria-label="Quitar servicio {{ sr.servicio.nombre }}"
+                           data-confirm="El servicio dejará de hacer parte del total de la reserva."
+                           data-titulo="Quitar servicio" data-accion="Sí, quitar">
+                            <i class="bi bi-trash"></i>
+                        </button></form>
+                        {% else %}
+                        <span class="text-muted extra-small">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-bag"></i>
+                            <p>No hay servicios adicionales registrados.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if not reserva.fecha_checkout and reserva.estado != 'CANCELADA' %}
+    <div class="panel-body border-top">
+        <form method="post" action="{% url 'agregar_servicio_reserva' reserva.id %}" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="servicioReserva">Agregar servicio</label>
+                <select id="servicioReserva" name="servicio" class="form-select form-select-sm" required>
+                    <option value="">Selecciona un servicio...</option>
+                    {% for s in servicios %}
+                    <option value="{{ s.id }}">{{ s.nombre }} · {{ s.precio|pesos }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="cantidadServicio">Cantidad</label>
+                <input type="number" id="cantidadServicio" name="cantidad" min="1" value="1" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-6 col-md-3">
+                <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fw-semibold">
+                    <i class="bi bi-plus-lg me-1"></i> Agregar
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="panel mb-3">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-cash-stack"></i> Pagos y abonos</h2>
+        <span class="pill pill-secondary">{{ pagos|length }} pago{{ pagos|length|pluralize }}</span>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Método</th>
+                    <th>Comprobante</th>
+                    <th>Monto</th>
+                    <th>Observación</th>
+                    <th class="col-acciones">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td>{{ p.fecha_pago|date:"d/m/Y · H:i" }}</td>
+                    <td><span class="pill pill-info">{{ p.get_metodo_pago_display }}</span></td>
+                    <td class="text-muted">{{ p.comprobante|default:"—" }}</td>
+                    <td class="fw-semibold text-success">{{ p.monto|pesos }}</td>
+                    <td class="text-muted">{{ p.observacion|default:"—" }}</td>
+                    <td class="col-acciones">
+                        <form method="post" action="{% url 'eliminar_pago' p.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3" aria-label="Eliminar pago {{ p.id }}"
+                           data-confirm="El pago se eliminará del historial y el saldo de la reserva se recalculará."
+                           data-titulo="Eliminar pago" data-accion="Sí, eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button></form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-cash"></i>
+                            <p>No hay pagos o abonos registrados aún.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if reserva.saldo_pendiente > 0 and reserva.estado != 'CANCELADA' %}
+    <div class="panel-body border-top">
+        <button class="btn btn-outline-primary btn-sm rounded-3 fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#formNuevoPago">
+            <i class="bi bi-plus-lg me-1"></i> Registrar nuevo pago
+        </button>
+
+        <div class="collapse mt-3" id="formNuevoPago">
+            <form method="post" action="{% url 'registrar_pago' reserva.id %}" class="row g-2 align-items-end p-3 bg-light rounded-3">
+                {% csrf_token %}
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="montoPago">Monto a abonar</label>
+                    <input type="number" id="montoPago" step="0.01" min="0.01" max="{{ reserva.saldo_pendiente|unlocalize }}" name="monto"
+                           value="{{ reserva.saldo_pendiente|unlocalize }}" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="metodoPago">Método de pago</label>
+                    <select id="metodoPago" name="metodo_pago" class="form-select form-select-sm" required>
+                        {% for valor, etiqueta in metodos %}
+                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="comprobantePago">Comprobante / referencia</label>
+                    <input type="text" id="comprobantePago" name="comprobante" class="form-control form-control-sm" maxlength="100" placeholder="Opcional">
+                </div>
+                <div class="col-12 col-md-3">
+                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-3 fw-semibold">
+                        <i class="bi bi-check2 me-1"></i> Guardar pago
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% elif reserva.saldo_pendiente <= 0 %}
+    <div class="panel-body border-top">
+        <div class="alert alert-success extra-small py-2 mb-0 rounded-3">
+            <i class="bi bi-check-circle-fill me-1"></i> La reserva está totalmente pagada.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% include 'inc/footer.html' %}

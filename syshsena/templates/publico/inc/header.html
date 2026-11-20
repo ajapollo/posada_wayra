@@ -1,0 +1,55 @@
+{% load static %}
+{% with actual=request.resolver_match.url_name %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo|default:hotel.nombre|default:"Posada Wayra" }}</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111111'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%231aa9b5' text-anchor='middle'%3EW%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}?v=20261118">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}?v=20261118">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261118">
+    {% if actual == 'posada_wayra' or actual == 'posada_habitaciones' or actual == 'cliente_habitaciones' %}<link rel="stylesheet" href="{% static 'css/portal.css' %}?v=20261118-search-card">{% endif %}
+</head>
+<body class="{% if es_publico or not user.is_authenticated or user.rol.nombre == 'CLIENTE' %}pw-publico{% if actual == 'posada_wayra' %} pw-portal{% endif %}{% if actual == 'login' or actual == 'cliente_login' %} pagina-login{% endif %}{% endif %}">
+{% if not es_publico and user.is_authenticated and user.rol.nombre != 'CLIENTE' %}
+    {% include 'publico/inc/nav_gestion.html' %}
+{% else %}
+<nav class="navbar navbar-expand-lg navbar-dark pw-navbar pw-public-nav" aria-label="Navegación pública">
+    <div class="container-xl pw-nav-wrap">
+        <a class="navbar-brand pw-brand" href="{% url 'posada_wayra' %}">
+            {% if hotel.logo %}<img src="{{ MEDIA_URL }}{{ hotel.logo.name }}" alt="Logo {{ hotel.nombre }}">{% endif %}
+            <span>{{ hotel.nombre|default:"Posada Wayra"|upper }}</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPublico" aria-controls="navPublico" aria-expanded="false" aria-label="Menú"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navPublico">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                <li class="nav-item"><a class="nav-link {% if actual == 'posada_wayra' %}active{% endif %}" href="{% url 'posada_wayra' %}">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link {% if actual == 'posada_habitaciones' or actual == 'posada_ver_habitacion' or actual == 'cliente_habitaciones' or actual == 'cliente_ver_habitacion' %}active{% endif %}" href="{% url 'posada_habitaciones' %}">Habitaciones</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'posada_wayra' %}#galeria">Galería</a></li>
+                {% if user.is_authenticated %}
+                    {% if user.rol.nombre == 'CLIENTE' %}
+                    <li class="nav-item"><a class="nav-link {% if actual == 'cliente_mis_reservas' or actual == 'cliente_ver_reserva' %}active{% endif %}" href="{% url 'cliente_mis_reservas' %}">Mis reservas</a></li>
+                    {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Gestión</a></li>
+                    {% endif %}
+                    <li class="nav-item"><a class="nav-link pw-nav-login {% if actual == 'perfil' %}active{% endif %}" href="{% url 'perfil' %}"><i class="bi bi-person-gear" aria-hidden="true"></i> Mi perfil</a></li>
+                    <li class="nav-item"><form action="{% url 'logout' %}" method="post" class="m-0">{% csrf_token %}<button type="submit" class="btn btn-light btn-sm rounded-pill px-3">Cerrar sesión</button></form></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'posada_habitaciones' %}">Consultar</a></li>
+                    <li class="nav-item ms-lg-2"><a class="nav-link pw-nav-login" href="{% url 'cliente_login' %}"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Iniciar sesión</a></li>
+                    <li class="nav-item"><a class="nav-link pw-nav-login" href="{% url 'registro_cliente' %}"><i class="bi bi-person-plus" aria-hidden="true"></i> Registrarse</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+<main class="{% if actual == 'posada_wayra' %}pw-portal-main{% else %}container-xl py-3 py-lg-4{% endif %}">
+{% endif %}
+{% if messages %}
+<div data-wayra-messages>
+    {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %}" role="status" data-wayra-message data-tipo="{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}
+</div>
+{% endif %}
+{% endwith %}

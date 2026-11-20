@@ -1,0 +1,188 @@
+{% load static hotel_extras %}
+{% include 'publico/inc/header.html' with es_publico=True %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-building"></i></div>
+        <div>
+            <h1 class="page-title">{{ alojamiento.nombre }}</h1>
+            <p class="page-subtitle">
+                <i class="bi bi-geo-alt me-1"></i>{{ alojamiento.municipio }} · {{ alojamiento.direccion }}
+            </p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'posada_wayra' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Inicio
+        </a>
+    </div>
+</div>
+
+<div class="panel overflow-hidden mb-4">
+    <div class="position-relative" style="height: 320px; background: linear-gradient(135deg, var(--wayra-mar-oscuro), var(--wayra-mar));">
+        {% if alojamiento.imagen %}
+        <img src="{{ MEDIA_URL }}{{ alojamiento.imagen.name }}" alt="{{ alojamiento.nombre }}" class="w-100 h-100" style="object-fit: cover;">
+        {% elif alojamiento.fotografias.all %}
+        {% with portada=alojamiento.fotografias.all.0 %}
+        <img src="{{ MEDIA_URL }}{{ portada.imagen.name }}" alt="{{ alojamiento.nombre }}" class="w-100 h-100" style="object-fit: cover;">
+        {% endwith %}
+        {% endif %}
+        <div class="position-absolute bottom-0 start-0 end-0 p-4 text-white" style="background: linear-gradient(to top, rgba(0,0,0,.65), transparent);">
+            <h2 class="h4 fw-bold mb-1">{{ alojamiento.nombre }}</h2>
+            <p class="mb-0 extra-small"><i class="bi bi-geo-alt-fill me-1"></i>{{ alojamiento.direccion }}, {{ alojamiento.municipio }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-info-circle"></i> Sobre el alojamiento</h2>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted extra-small mb-3">
+                    {{ alojamiento.descripcion|default:"Posada Wayra es un alojamiento con alma de La Guajira: playa, cultura Wayuu y la calidez del Caribe colombiano." }}
+                </p>
+
+                <div class="row g-3 extra-small mb-4">
+                    <div class="col-12 col-sm-6">
+                        <span class="text-muted d-block"><i class="bi bi-telephone me-1"></i>Teléfono</span>
+                        <strong class="text-dark">{{ alojamiento.telefono|default:"—" }}</strong>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <span class="text-muted d-block"><i class="bi bi-envelope me-1"></i>Correo</span>
+                        <strong class="text-dark">{{ alojamiento.email|default:"—" }}</strong>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <span class="text-muted d-block"><i class="bi bi-geo me-1"></i>Municipio</span>
+                        <strong class="text-dark">{{ alojamiento.municipio }}</strong>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <span class="text-muted d-block"><i class="bi bi-door-open me-1"></i>Habitaciones</span>
+                        <strong class="text-dark">{{ habitaciones|length }} disponible{{ habitaciones|length|pluralize }}</strong>
+                    </div>
+                </div>
+
+                {% if alojamiento.informacion_turistica %}
+                <div class="bg-light rounded-3 p-3">
+                    <h3 class="form-section-title mb-2"><i class="bi bi-compass"></i> Información turística</h3>
+                    <p class="text-muted extra-small mb-0">{{ alojamiento.informacion_turistica|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if alojamiento.fotografias.all %}
+        <div class="panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-images"></i> Galería</h2>
+                <span class="pill pill-secondary">{{ alojamiento.fotografias.all|length }} foto{{ alojamiento.fotografias.all|length|pluralize }}</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-2">
+                    {% for foto in alojamiento.fotografias.all %}
+                    <div class="col-6 col-md-4">
+                        <img src="{{ MEDIA_URL }}{{ foto.imagen.name }}" alt="{{ foto.titulo|default:'Fotografía del alojamiento' }}"
+                             class="w-100 rounded-3 border" style="height:120px; object-fit: cover;">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-door-open"></i> Habitaciones disponibles</h2>
+                <span class="pill pill-secondary">{{ habitaciones|length }}</span>
+            </div>
+            <div class="table-shell">
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Habitación</th>
+                            <th>Tipo</th>
+                            <th>Capacidad</th>
+                            <th>Precio / noche</th>
+                            <th class="col-acciones">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in habitaciones %}
+                        <tr>
+                            <td><strong class="text-dark">Hab. {{ h.numero }}</strong><span class="d-block text-muted extra-small">Piso {{ h.piso }}</span></td>
+                            <td>{{ h.tipo.nombre }}</td>
+                            <td>{{ h.capacidad }} persona{{ h.capacidad|pluralize }}</td>
+                            <td class="fw-semibold text-dark">{{ h.precio_noche|pesos }}</td>
+                            <td class="col-acciones">
+                                <a href="{% url 'posada_ver_habitacion' h.id %}" class="btn btn-sm btn-primary rounded-3">Consultar y reservar</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-door-closed"></i>
+                                    <p>No hay habitaciones disponibles en este momento.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-stars"></i> Servicios disponibles</h2>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex flex-column gap-2">
+                    {% for s in alojamiento.servicios.all %}
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light extra-small">
+                        <div>
+                            <strong class="d-block text-dark">{{ s.nombre }}</strong>
+                            <span class="text-muted">{{ s.momento_dia }}</span>
+                        </div>
+                        <span class="pill pill-info">{{ s.precio|pesos }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted extra-small mb-0">Los servicios se informan en recepción.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-compass"></i> Sitios turísticos cercanos</h2>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex flex-column gap-3">
+                    {% for sitio in alojamiento.sitios_turisticos.all %}
+                    <div class="rounded-3 border overflow-hidden">
+                        {% if sitio.imagen %}
+                        <img src="{{ MEDIA_URL }}{{ sitio.imagen.name }}" alt="{{ sitio.nombre }}" class="w-100" style="height:100px; object-fit:cover;">
+                        {% endif %}
+                        <div class="p-2">
+                            <strong class="d-block text-dark extra-small">{{ sitio.nombre }}</strong>
+                            <span class="text-muted extra-small d-block">{{ sitio.municipio }} · {{ sitio.distancia_km|floatformat:"-1" }} km</span>
+                            {% if sitio.descripcion %}
+                            <span class="text-muted extra-small d-block mt-1">{{ sitio.descripcion|truncatechars:100 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted extra-small mb-0">Consulta en recepción por los tours disponibles.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'publico/inc/footer.html' %}

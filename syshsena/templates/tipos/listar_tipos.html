@@ -1,0 +1,104 @@
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-tags"></i></div>
+        <div>
+            <h1 class="page-title">Tipos de habitación</h1>
+            <p class="page-subtitle">Categorías y capacidad máxima de las habitaciones de la posada.</p>
+        </div>
+    </div>
+    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+    <div class="page-actions">
+        <a href="{% url 'registrar_tipo' %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-plus-lg me-1"></i> Nuevo tipo
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="toolbar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+            <label class="form-label" for="buscarTipo">Buscar tipo</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="buscarTipo" name="buscar" value="{{ buscar }}" class="form-control" placeholder="Ej: Suite">
+            </div>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold">Filtrar</button>
+            {% if buscar %}
+            <a href="{% url 'listar_tipos' %}" class="btn btn-light border btn-sm rounded-3">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-list-ul"></i> Listado de tipos</h2>
+        <span class="pill pill-secondary">{{ tipos.paginator.count }} registro{{ tipos.paginator.count|pluralize }}</span>
+    </div>
+
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th style="width:70px;">ID</th>
+                    <th>Tipo de habitación</th>
+                    <th>Descripción</th>
+                    <th class="text-center">Capacidad</th>
+                    <th class="text-center">Habitaciones</th>
+                    <th class="col-acciones">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tipos %}
+                <tr>
+                    <td class="text-muted">#{{ t.id }}</td>
+                    <td><strong class="text-dark">{{ t.nombre }}</strong></td>
+                    <td class="text-muted">{{ t.descripcion|default:"—"|truncatechars:60 }}</td>
+                    <td class="text-center">
+                        <span class="pill pill-info"><i class="bi bi-people"></i>{{ t.capacidad }} en total</span>
+                        <div class="extra-small text-muted mt-1">Máx. {{ t.max_adultos }} adultos · {{ t.max_ninos|default_if_none:1 }} niños, dentro del total</div>
+                    </td>
+                    <td class="text-center text-muted">{{ t.habitaciones.count }}</td>
+                    <td class="col-acciones">
+                        {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+                        <a href="{% url 'editar_tipo' t.id %}" class="btn btn-sm btn-light border rounded-3" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{% url 'eliminar_tipo' t.id %}" class="d-inline"
+                              data-confirm="El tipo {{ t.nombre }} se eliminará si no tiene habitaciones asociadas."
+                              data-titulo="Eliminar tipo" data-accion="Sí, eliminar">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light border text-danger rounded-3" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted extra-small">Solo lectura</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-tags"></i>
+                            <p>No hay tipos de habitación registrados.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-4 pb-4 pt-2">
+        {% include 'publico/inc/paginacion.html' with pagina=tipos %}
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

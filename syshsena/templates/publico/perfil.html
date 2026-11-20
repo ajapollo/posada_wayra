@@ -1,0 +1,175 @@
+{% include 'publico/inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile info"><i class="bi bi-person-gear"></i></div>
+        <div>
+            <h1 class="page-title">Mi perfil</h1>
+            <p class="page-subtitle">Actualiza tu foto, tus datos personales y la contraseña de acceso a {{ hotel.nombre|default:"Posada Wayra" }}.</p>
+        </div>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center gap-2 rounded-3 border-0 shadow-sm mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div class="small">{{ error }}</div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="panel form-panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-person-vcard"></i> Datos personales</h2>
+                <span class="pill pill-secondary">@{{ perfil_usuario.username }}</span>
+            </div>
+            <div class="panel-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="datos">
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="perfilNombre">Nombres</label>
+                            <input type="text" id="perfilNombre" name="first_name" class="form-control" value="{{ perfil_usuario.first_name }}" maxlength="150">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="perfilApellido">Apellidos</label>
+                            <input type="text" id="perfilApellido" name="last_name" class="form-control" value="{{ perfil_usuario.last_name }}" maxlength="150">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="perfilCorreo">Correo electrónico</label>
+                            <input type="email" id="perfilCorreo" name="email" class="form-control" value="{{ perfil_usuario.email }}">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="perfilRol">Rol asignado</label>
+                            <input type="text" id="perfilRol" class="form-control" value="{{ perfil_usuario.rol.get_nombre_display|default:'Sin rol' }}" disabled>
+                        </div>
+
+                        {% if huesped %}
+                        <div class="col-12">
+                            <div class="form-section-title mt-2"><i class="bi bi-card-heading"></i> Datos de huésped</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Documento</label>
+                            <input type="text" class="form-control" value="{{ huesped.get_tipo_documento_display }} {{ huesped.numero_documento }}" disabled>
+                            <div class="form-text">Para cambiar el documento contacta a recepción.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="perfilTelefono">Teléfono</label>
+                            <input type="text" id="perfilTelefono" name="telefono" class="form-control" value="{{ huesped.telefono|default:'' }}" maxlength="20">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="perfilDireccion">Dirección</label>
+                            <input type="text" id="perfilDireccion" name="direccion" class="form-control" value="{{ huesped.direccion|default:'' }}" maxlength="200">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="perfilNacionalidad">Nacionalidad</label>
+                            <input type="text" id="perfilNacionalidad" name="nacionalidad" class="form-control" value="{{ huesped.nacionalidad }}">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="perfilCiudad">Ciudad de residencia</label>
+                            <input type="text" id="perfilCiudad" name="ciudad_residencia" class="form-control" value="{{ huesped.ciudad_residencia }}">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="perfilPais">País de residencia</label>
+                            <input type="text" id="perfilPais" name="pais_residencia" class="form-control" value="{{ huesped.pais_residencia }}">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary rounded-3 px-4 fw-semibold">
+                            <i class="bi bi-check2-circle me-1"></i> Guardar datos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="panel form-panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-camera"></i> Fotografía de perfil</h2>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {% if perfil_usuario.avatar %}
+                    <img data-avatar-preview src="{{ MEDIA_URL }}{{ perfil_usuario.avatar.name }}" alt="Foto de perfil"
+                         class="rounded-circle object-fit-cover border shadow-sm" style="width: 88px; height: 88px;">
+                    {% else %}
+                    <div data-avatar-preview class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                         style="width: 88px; height: 88px; font-size: 1.6rem;">
+                        {{ perfil_usuario.iniciales|default:perfil_usuario.username|slice:":2"|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="extra-small text-muted">
+                        <strong class="d-block text-dark">Imagen JPG, PNG o WEBP</strong>
+                        Máximo 4 MB. Se mostrará en el menú y en tus reservas.
+                    </div>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="avatar">
+                    <input type="file" name="avatar" class="form-control form-control-sm mb-3" accept="image/*" data-avatar-input required>
+                    <button type="submit" class="btn btn-outline-primary btn-sm rounded-3 px-3 fw-semibold">
+                        <i class="bi bi-upload me-1"></i> Actualizar foto
+                    </button>
+                </form>
+                {% if perfil_usuario.avatar %}
+                <form method="post" class="mt-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="quitar_avatar">
+                    <button type="submit" class="btn btn-link btn-sm text-danger text-decoration-none px-0"
+                            data-confirm="Tu fotografía de perfil será eliminada y volverás a mostrar tus iniciales."
+                            data-titulo="Quitar fotografía" data-accion="Sí, quitar"
+                            data-icono="warning">
+                        <i class="bi bi-trash me-1"></i> Quitar fotografía
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="panel form-panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-key"></i> Seguridad</h2>
+            </div>
+            <div class="panel-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="password">
+
+                    <div class="mb-3">
+                        <label class="form-label" for="passwordActual">Contraseña actual</label>
+                        <input type="password" id="passwordActual" name="password_actual" class="form-control" required autocomplete="current-password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="passwordNueva">Nueva contraseña</label>
+                        <input type="password" id="passwordNueva" name="password_nueva" class="form-control" minlength="6" required autocomplete="new-password">
+                        <div class="form-text">Mínimo 6 caracteres.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="passwordConfirmar">Confirmar nueva contraseña</label>
+                        <input type="password" id="passwordConfirmar" name="password_confirmar" class="form-control" minlength="6" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary rounded-3 px-4 fw-semibold w-100">
+                        <i class="bi bi-shield-lock me-1"></i> Cambiar contraseña
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-body extra-small text-muted">
+                <p class="mb-2"><i class="bi bi-shield-check text-primary me-1"></i>Tus datos personales se usan únicamente para la gestión de tu estadía (SITT / MinCIT).</p>
+                <p class="mb-0"><i class="bi bi-telephone text-primary me-1"></i>¿Necesitas ayuda? Recepción: {{ hotel.telefono|default:"+57 322 220 352" }}.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'publico/inc/footer.html' %}

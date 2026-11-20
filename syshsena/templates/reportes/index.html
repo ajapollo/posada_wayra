@@ -1,0 +1,98 @@
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile info"><i class="bi bi-bar-chart-line"></i></div>
+        <div>
+            <h1 class="page-title">Módulo de reportes</h1>
+            <p class="page-subtitle">Consulta y exporta los informes operativos y financieros del hotel.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'dashboard' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-grid-1x2 me-1"></i> Panel general
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="panel panel-hover h-100">
+            <div class="panel-body d-flex flex-column">
+                <div class="icon-tile ok mb-3"><i class="bi bi-cash-stack"></i></div>
+                <h2 class="h6 fw-bold text-dark mb-1">Reporte de ingresos</h2>
+                <p class="text-muted extra-small mb-3">Recaudos por método de pago, saldos pendientes y desglose por concepto.</p>
+                <a href="{% url 'reporte_ingresos' %}" class="btn btn-light border btn-sm rounded-3 fw-semibold mt-auto">
+                    Ver reporte <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="panel panel-hover h-100">
+            <div class="panel-body d-flex flex-column">
+                <div class="icon-tile info mb-3"><i class="bi bi-pie-chart"></i></div>
+                <h2 class="h6 fw-bold text-dark mb-1">Reporte de ocupación</h2>
+                <p class="text-muted extra-small mb-3">Estado físico de habitaciones, tasa de ocupación y disponibilidad por sede.</p>
+                <a href="{% url 'reporte_ocupacion' %}" class="btn btn-light border btn-sm rounded-3 fw-semibold mt-auto">
+                    Ver reporte <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="panel panel-hover h-100">
+            <div class="panel-body d-flex flex-column">
+                <div class="icon-tile tierra mb-3"><i class="bi bi-calendar-range"></i></div>
+                <h2 class="h6 fw-bold text-dark mb-1">Reporte de reservas</h2>
+                <p class="text-muted extra-small mb-3">Filtra reservas por fechas, estado y huésped, y exporta el listado.</p>
+                <a href="{% url 'reporte_reservas' %}" class="btn btn-light border btn-sm rounded-3 fw-semibold mt-auto">
+                    Ver reporte <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="panel panel-hover h-100">
+            <div class="panel-body d-flex flex-column">
+                <div class="icon-tile sol mb-3"><i class="bi bi-people"></i></div>
+                <h2 class="h6 fw-bold text-dark mb-1">Reporte de huéspedes</h2>
+                <p class="text-muted extra-small mb-3">Directorio de huéspedes, frecuencia de reservas y datos de contacto.</p>
+                <a href="{% url 'reporte_huespedes' %}" class="btn btn-light border btn-sm rounded-3 fw-semibold mt-auto">
+                    Ver reporte <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="panel panel-hover h-100">
+            <div class="panel-body d-flex flex-column">
+                <div class="icon-tile mb-3"><i class="bi bi-door-open"></i></div>
+                <h2 class="h6 fw-bold text-dark mb-1">Reporte de habitaciones</h2>
+                <p class="text-muted extra-small mb-3">Inventario, estados, tarifas e ingresos generados por habitación.</p>
+                <a href="{% url 'reporte_habitaciones' %}" class="btn btn-light border btn-sm rounded-3 fw-semibold mt-auto">
+                    Ver reporte <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="panel panel-hover h-100">
+            <div class="panel-body d-flex flex-column">
+                <div class="icon-tile sm sol mb-3"><i class="bi bi-stars"></i></div>
+                <h2 class="h6 fw-bold text-dark mb-1">Reporte de servicios</h2>
+                <p class="text-muted extra-small mb-3">Servicios vendidos, cantidades e ingresos adicionales por reserva.</p>
+                <a href="{% url 'reporte_servicios' %}" class="btn btn-light border btn-sm rounded-3 fw-semibold mt-auto">
+                    Ver reporte <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

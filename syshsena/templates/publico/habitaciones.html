@@ -1,0 +1,269 @@
+{% load static hotel_extras %}
+{% include 'publico/inc/header.html' with es_publico=True %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-door-open"></i></div>
+        <div>
+            <h1 class="page-title">Habitaciones disponibles</h1>
+            <p class="page-subtitle">Consulta tarifas, capacidad y disponibilidad para tus fechas.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'posada_wayra' %}" class="btn btn-light border btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver al inicio
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH CARD (Con forzado de posición estática/relativa arriba) -->
+<div class="pw-search-card pw-results-search-card mb-4">
+    <form method="get" action="{% url 'posada_habitaciones' %}" data-search-dates class="pw-search-form">
+        
+        <!-- FECHAS CON CALENDARIO POPOVER -->
+        <div class="pw-search-field" data-datepicker-field>
+            <button type="button" class="pw-search-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                <span class="pw-search-icon"><i class="bi bi-calendar3"></i></span>
+                <span class="pw-search-text">
+                    <span class="pw-search-label">Cuándo</span>
+                    <strong class="pw-search-value" data-date-summary>
+                        {% if filtros.entrada and filtros.salida %}
+                            {{ filtros.entrada|date:'d/m/Y' }} ━ {{ filtros.salida|date:'d/m/Y' }}
+                        {% else %}
+                            Entrada ━ Salida
+                        {% endif %}
+                    </strong>
+                </span>
+            </button>
+
+            <!-- Panel emergente del calendario -->
+            <div class="dropdown-menu pw-calendar-popover shadow-lg border-0 p-4">
+                <div class="pw-calendar-header d-flex justify-content-between align-items-center mb-3">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle" id="pwPrevMonth" aria-label="Mes anterior"><i class="bi bi-chevron-left"></i></button>
+                    <span class="fw-bold text-dark fs-6" id="pwCalendarRangeLabel" aria-live="polite">Selecciona tus fechas</span>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle" id="pwNextMonth" aria-label="Mes siguiente"><i class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <div class="pw-calendar-grid-wrapper">
+                    <div class="pw-month-block" id="monthBlock1"></div>
+                    <div class="pw-month-block" id="monthBlock2"></div>
+                </div>
+                <p class="text-muted extra-small mt-3 mb-0">Tarifa por habitación/noche. Consulta el precio de cada habitación.</p>
+            </div>
+
+            <!-- Campos ocultos de fecha -->
+            <input type="hidden" name="fecha_inicio" id="fecha_inicio_val" value="{{ filtros.entrada|date:'Y-m-d' }}">
+            <input type="hidden" name="fecha_fin" id="fecha_fin_val" value="{{ filtros.salida|date:'Y-m-d' }}">
+        </div>
+
+        <!-- SELECTOR DE HUÉSPEDES -->
+        <div class="pw-search-field" data-guest-selector
+            data-adultos-inicial="{{ filtros.adultos }}"
+            data-ninos-inicial="{{ filtros.ninos }}"
+            data-max-adultos="{{ limites_busqueda.adultos }}"
+            data-max-ninos="{{ limites_busqueda.ninos }}">
+            <button type="button" class="pw-search-trigger" data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside" aria-expanded="false" aria-label="Seleccionar huéspedes">
+                <span class="pw-search-icon"><i class="bi bi-people"></i></span>
+                <span class="pw-search-text">
+                    <span class="pw-search-label">Who · Quiénes</span>
+                    <strong class="pw-search-value" data-guest-summary>
+                        {{ filtros.adultos }} adulto{{ filtros.adultos|pluralize }}{% if filtros.ninos %}, {{ filtros.ninos }} niño{{ filtros.ninos|pluralize }}{% endif %}
+                    </strong>
+                </span>
+                <i class="bi bi-chevron-down pw-search-caret"></i>
+            </button>
+            <div class="dropdown-menu pw-guest-panel shadow-lg border-0">
+                <div class="pw-guest-row">
+                    <div><strong>Adultos</strong><span>mayores de {{ hotel.edad_max_nino|default_if_none:11 }} años</span></div>
+                    <div class="pw-guest-stepper">
+                        <button type="button" data-guest-step="adultos" data-step="-1" aria-label="Quitar adulto"><i class="bi bi-dash"></i></button>
+                        <output data-guest-count="adultos">{{ filtros.adultos }}</output>
+                        <button type="button" data-guest-step="adultos" data-step="1" aria-label="Agregar adulto"><i class="bi bi-plus"></i></button>
+                    </div>
+                </div>
+                <div class="pw-guest-row">
+                    <div><strong>Niños</strong><span>hasta {{ hotel.edad_max_nino|default_if_none:11 }} años</span></div>
+                    <div class="pw-guest-stepper">
+                        <button type="button" data-guest-step="ninos" data-step="-1" aria-label="Quitar niño"><i class="bi bi-dash"></i></button>
+                        <output data-guest-count="ninos">{{ filtros.ninos }}</output>
+                        <button type="button" data-guest-step="ninos" data-step="1" aria-label="Agregar niño"><i class="bi bi-plus"></i></button>
+                    </div>
+                </div>
+                <div class="p-2 pt-2 text-center">
+                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                        Hasta {{ limites_busqueda.adultos }} adultos y {{ limites_busqueda.ninos }} niños según el tipo. Revisa la capacidad total de cada habitación.
+                    </small>
+                    <button type="button" class="btn btn-primary btn-sm w-100 rounded-pill fw-semibold" data-guest-apply>Aplicar</button>
+                </div>
+            </div>
+            <input type="hidden" name="adultos" data-guest-input="adultos" value="{{ filtros.adultos }}">
+            <input type="hidden" name="ninos" data-guest-input="ninos" value="{{ filtros.ninos }}">
+            <input type="hidden" name="huespedes" data-guest-input="total" value="{{ filtros.huespedes }}">
+        </div>
+
+        <!-- BOTÓN DE BÚSQUEDA -->
+        <button type="submit" class="pw-search-submit">
+            <i class="bi bi-search"></i><span>Buscar</span>
+        </button>
+    </form>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+        <h2 class="h5 fw-bold mb-0">{{ total_disponibles }} habitación{{ total_disponibles|pluralize:"es" }} para tu búsqueda</h2>
+        <p class="text-muted extra-small mb-0">
+            {{ filtros.entrada|date:"d/m/Y" }} → {{ filtros.salida|date:"d/m/Y" }} ·
+            {{ filtros.adultos }} adulto{{ filtros.adultos|pluralize }}{% if filtros.ninos %}, {{ filtros.ninos }} niño{{ filtros.ninos|pluralize }}{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- SECCIÓN 1: HABITACIONES DISPONIBLES -->
+<div class="row g-4 mb-4">
+    {% for h in habitaciones %}
+        {% if not h.ocupada_en_fechas and not h.sin_capacidad %}
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="panel panel-hover h-100 overflow-hidden d-flex flex-column">
+                <div class="room-photo" style="height: 210px;">
+                    <img src="{% if h.imagen %}{{ MEDIA_URL }}{{ h.imagen.name }}{% else %}{{ MEDIA_URL }}habitaciones/default.jpg{% endif %}"
+                         data-fallback="{{ MEDIA_URL }}habitaciones/default.jpg"
+                         onerror="this.onerror=null; this.src=this.dataset.fallback;"
+                         alt="Habitación {{ h.numero }}">
+                    
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="pill pill-success shadow-sm">
+                            <i class="bi bi-check-circle-fill"></i> Disponible
+                        </span>
+                    </div>
+
+                    <div class="room-photo-caption">
+                        <strong class="d-block">Habitación {{ h.numero }}</strong>
+                        <span class="extra-small text-white-50">{{ h.alojamiento.nombre }}</span>
+                    </div>
+                </div>
+
+                <div class="panel-body d-flex flex-column flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h3 class="h6 fw-bold mb-0">{{ h.tipo.nombre }}</h3>
+                        <span class="fw-bold pw-price">{{ h.precio_noche|pesos }}</span>
+                    </div>
+                    <p class="text-muted extra-small mb-2">
+                        <i class="bi bi-people me-1"></i>Capacidad total: {{ h.capacidad }} personas · Máx. {{ h.max_adultos }} adulto{{ h.max_adultos|pluralize }} y {{ h.max_ninos }} niño{{ h.max_ninos|pluralize }}
+                        <span class="ms-2"><i class="bi bi-layers me-1"></i>Piso {{ h.piso }}</span>
+                    </p>
+                    <p class="small text-muted flex-grow-1 mb-3">{{ h.tipo.descripcion|default:"Un espacio cómodo, limpio y fresco para descansar después de recorrer La Guajira."|truncatechars:110 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                        <span class="extra-small text-muted">
+                            Tarifa por habitación/noche:
+                            <strong class="text-dark">{{ h.precio_noche|pesos }} c/u</strong>
+                        </span>
+                        <a href="{% url 'posada_ver_habitacion' h.id %}?fecha_inicio={{ filtros.entrada|date:'Y-m-d' }}&fecha_fin={{ filtros.salida|date:'Y-m-d' }}&adultos={{ filtros.adultos }}&ninos={{ filtros.ninos }}"
+                           class="btn btn-primary btn-sm rounded-pill px-3">Reservar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% empty %}
+        <div class="col-12">
+            <div class="panel">
+                <div class="empty-state">
+                    <i class="bi bi-door-closed"></i>
+                    <p>No hay habitaciones registradas en este momento.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% if total_disponibles == 0 and habitaciones %}
+        <div class="col-12">
+            <div class="alert alert-warning d-flex align-items-center gap-2 rounded-3 border-0 shadow-sm mb-2">
+                <i class="bi bi-info-circle-fill fs-5"></i>
+                <div class="small">
+                    No tenemos habitaciones disponibles que coincidan exactamente con tus fechas o cantidad de huéspedes. Revisa otras opciones abajo o intenta cambiar las fechas.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- DIVISOR VISUAL Y SECCIÓN 2: NO DISPONIBLES / SIN CAPACIDAD -->
+{% if total_no_disponibles > 0 %}
+    <div class="d-flex align-items-center gap-3 my-4 pt-2">
+        <hr class="flex-grow-1 border-secondary opacity-25">
+        <span class="text-uppercase text-muted fw-bold extra-small" style="letter-spacing: 0.8px;">
+            <i class="bi bi-calendar-x me-1"></i> Otras habitaciones (No disponibles para tu selección)
+        </span>
+        <hr class="flex-grow-1 border-secondary opacity-25">
+    </div>
+
+    <div class="row g-4 mb-4">
+        {% for h in habitaciones %}
+            {% if h.ocupada_en_fechas or h.sin_capacidad %}
+            <div class="col-12 col-sm-6 col-xl-4">
+                <div class="panel h-100 overflow-hidden d-flex flex-column opacity-75 bg-light" style="filter: grayscale(85%);">
+                    <div class="room-photo" style="height: 210px;">
+                        <img src="{% if h.imagen %}{{ MEDIA_URL }}{{ h.imagen.name }}{% else %}{{ MEDIA_URL }}habitaciones/default.jpg{% endif %}"
+                             data-fallback="{{ MEDIA_URL }}habitaciones/default.jpg"
+                             onerror="this.onerror=null; this.src=this.dataset.fallback;"
+                             alt="Habitación {{ h.numero }}">
+                        
+                        <div class="position-absolute top-0 end-0 m-3">
+                            {% if h.ocupada_en_fechas %}
+                                <span class="pill pill-danger shadow-sm">
+                                    <i class="bi bi-calendar-x-fill"></i> No disponible en estas fechas
+                                </span>
+                            {% else %}
+                                <span class="pill pill-secondary shadow-sm bg-dark text-white">
+                                    <i class="bi bi-people-fill"></i> Sin capacidad para su solicitud
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="room-photo-caption">
+                            <strong class="d-block">Habitación {{ h.numero }}</strong>
+                            <span class="extra-small text-white-50">{{ h.alojamiento.nombre }}</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-body d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h3 class="h6 fw-bold mb-0">{{ h.tipo.nombre }}</h3>
+                            <span class="fw-bold pw-price">{{ h.precio_noche|pesos }}</span>
+                        </div>
+                        <p class="text-muted extra-small mb-2">
+                            <i class="bi bi-people me-1"></i>Capacidad total: {{ h.capacidad }} personas · Máx. {{ h.max_adultos }} adulto{{ h.max_adultos|pluralize }} y {{ h.max_ninos }} niño{{ h.max_ninos|pluralize }}
+                            <span class="ms-2"><i class="bi bi-layers me-1"></i>Piso {{ h.piso }}</span>
+                        </p>
+                        <p class="small text-muted flex-grow-1 mb-3">{{ h.tipo.descripcion|default:"Un espacio cómodo, limpio y fresco para descansar después de recorrer La Guajira."|truncatechars:110 }}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                            <span class="extra-small text-muted">
+                                Tarifa por habitación/noche:
+                                <strong class="text-dark">{{ h.precio_noche|pesos }} c/u</strong>
+                            </span>
+
+                            {% if h.ocupada_en_fechas %}
+                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" disabled>
+                                    Ocupada en fecha
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" disabled>
+                                    Sin capacidad
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% include 'publico/inc/paginacion.html' with pagina=habitaciones %}
+
+{% if tarifas_calendario %}{{ tarifas_calendario|json_script:'wayra-tarifas-calendario' }}{% endif %}
+{% include 'publico/inc/footer.html' %}

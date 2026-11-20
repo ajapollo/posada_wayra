@@ -1,0 +1,82 @@
+{% include 'publico/inc/header.html' with es_publico=True %}
+
+<div class="row justify-content-center py-4 py-lg-5">
+  <div class="col-md-7 col-lg-5 col-xl-4">
+    <div class="text-center mb-4">
+      {% if hotel.logo %}
+      <img src="{{ MEDIA_URL }}{{ hotel.logo.name }}" alt="Logo {{ hotel.nombre }}"
+           class="mx-auto mb-2 rounded-3 bg-white p-1 shadow-sm d-block"
+           style="width: 64px; height: 64px; object-fit: contain;">
+      {% else %}
+      <div class="icon-tile mx-auto mb-2" style="width: 60px; height: 60px; font-size: 1.7rem;">
+        <i class="bi bi-water"></i>
+      </div>
+      {% endif %}
+      <h1 class="h4 fw-bold mb-0 text-white">{{ hotel.nombre|default:"Posada Wayra" }}</h1>
+      <p class="text-white-50 extra-small mb-0">{{ hotel.ciudad|default:"Riohacha" }} · {{ hotel.departamento|default:"La Guajira" }}</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body">
+        {% if client_mode %}
+        <h2 class="h6 fw-bold mb-1"><i class="bi bi-calendar-check text-primary me-1"></i>Inicia sesión para reservar</h2>
+        <p class="text-muted extra-small mb-3">Ingresa con tu cuenta o crea una nueva para confirmar tu reserva.</p>
+        {% else %}
+        <h2 class="h6 fw-bold mb-1"><i class="bi bi-shield-lock text-primary me-1"></i>Acceso del personal</h2>
+        <p class="text-muted extra-small mb-3">Portal exclusivo para recepción, administración y gerencia.</p>
+        {% endif %}
+
+        {% if client_mode and next %}
+        <div class="alert alert-info py-2 small rounded-3 border-0 d-flex align-items-start gap-2 mb-3" role="status">
+          <i class="bi bi-calendar-check mt-1"></i>
+          <span>Al ingresar volverás automáticamente al alojamiento que estabas consultando para confirmar tu reserva.</span>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger py-2 small rounded-3 border-0 d-flex align-items-start gap-2 mb-3" role="alert">
+          <i class="bi bi-exclamation-triangle mt-1"></i>
+          <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% if client_mode %}{% url 'cliente_login' %}{% else %}{% url 'login' %}{% endif %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+
+          <div class="mb-3">
+            <label for="username" class="form-label">Usuario</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" id="username" name="username" class="form-control" autocomplete="username" autofocus required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-key"></i></span>
+              <input type="password" id="password" name="password" class="form-control" autocomplete="current-password" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Ingresar
+          </button>
+        </form>
+
+        {% if client_mode %}
+        <p class="text-center extra-small mt-3 mb-0">
+          ¿Eres cliente nuevo?
+          <a href="{% url 'registro_cliente' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="fw-semibold">Crea tu cuenta</a>
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <p class="text-center text-white-50 extra-small mt-3 mb-0">
+      <i class="bi bi-shield-lock me-1"></i>Conexión segura · tus datos están protegidos
+    </p>
+  </div>
+</div>
+{% include 'publico/inc/footer.html' %}

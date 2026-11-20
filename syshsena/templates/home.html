@@ -1,0 +1,192 @@
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+  <div class="page-head-main">
+    <div class="icon-tile"><i class="bi bi-house-door"></i></div>
+    <div>
+      <h1 class="page-title">{% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}Panel de administración{% elif user.rol.nombre == 'GERENTE' %}Panel gerencial{% else %}Panel de operaciones{% endif %}</h1>
+      <p class="page-subtitle">
+        {% if user.is_authenticated %}
+        Bienvenido/a, <strong>{{ user.get_full_name|default:user.username }}</strong>. Accede a los módulos de control y gestión de {{ hotel.nombre|default:"Posada Wayra" }}.
+        {% else %}
+        Bienvenido/a a {{ hotel.nombre|default:"Posada Wayra" }}. Explora la posada y gestiona tu estadía desde un solo lugar.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' or user.rol.nombre == 'GERENTE' %}
+  <div class="page-actions">
+    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm px-3">
+      <i class="bi bi-speedometer2 me-1"></i>Dashboard general
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<h2 class="h6 text-uppercase text-muted fw-bold mb-3"><i class="bi bi-calendar-check me-1"></i>Operación y consultas</h2>
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-xl-3">
+    <div class="panel panel-hover h-100">
+      <div class="panel-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <span class="icon-tile"><i class="bi bi-calendar-event"></i></span>
+          <div>
+            <h3 class="h6 fw-bold mb-0">Consultar reservas</h3>
+            <span class="text-muted extra-small">Control e ingresos</span>
+          </div>
+        </div>
+        <p class="text-muted extra-small mb-3">Gestiona check-in, check-out, confirmaciones de abonos y saldos.</p>
+        <a href="{% url 'listar_reservas' %}" class="btn btn-outline-primary btn-sm mt-auto">Ver reservas</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <div class="panel panel-hover h-100">
+      <div class="panel-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <span class="icon-tile info"><i class="bi bi-people"></i></span>
+          <div>
+            <h3 class="h6 fw-bold mb-0">Consultar huéspedes</h3>
+            <span class="text-muted extra-small">Directorio de clientes</span>
+          </div>
+        </div>
+        <p class="text-muted extra-small mb-3">Consulta el registro de huéspedes, documentos y sus historiales.</p>
+        <a href="{% url 'listar_huespedes' %}" class="btn btn-outline-primary btn-sm mt-auto">Ver huéspedes</a>
+      </div>
+    </div>
+  </div>
+
+  {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' or user.rol.nombre == 'GERENTE' %}
+  <div class="col-md-6 col-xl-3">
+    <div class="panel panel-hover h-100">
+      <div class="panel-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <span class="icon-tile ok"><i class="bi bi-cash-stack"></i></span>
+          <div>
+            <h3 class="h6 fw-bold mb-0">Consultar pagos</h3>
+            <span class="text-muted extra-small">Recaudos y transferencias</span>
+          </div>
+        </div>
+        <p class="text-muted extra-small mb-3">Audita abonos, pagos recibidos por banco y saldos pendientes.</p>
+        <a href="{% url 'pagos' %}" class="btn btn-outline-primary btn-sm mt-auto">Ver pagos y abonos</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-xl-3">
+    <div class="panel panel-hover h-100">
+      <div class="panel-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <span class="icon-tile sol"><i class="bi bi-bar-chart-line"></i></span>
+          <div>
+            <h3 class="h6 fw-bold mb-0">Generar reportes</h3>
+            <span class="text-muted extra-small">Estadísticas e informes</span>
+          </div>
+        </div>
+        <p class="text-muted extra-small mb-3">Reportes de ocupación, ingresos, reservas y huéspedes.</p>
+        <a href="{% url 'reportes_index' %}" class="btn btn-outline-primary btn-sm mt-auto">Módulo reportes</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+<h2 class="h6 text-uppercase text-muted fw-bold mb-3"><i class="bi bi-gear me-1"></i>Módulos de administración</h2>
+<div class="row g-3">
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'listar_usuarios' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile"><i class="bi bi-person-gear"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Administrar usuarios</h3>
+          <span class="text-muted extra-small">Crea, edita o desactiva cuentas del personal</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'listar_roles' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile"><i class="bi bi-shield-lock"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Administrar roles</h3>
+          <span class="text-muted extra-small">Niveles de acceso del sistema</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'configuracion_hotel' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile"><i class="bi bi-building"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Configurar establecimiento</h3>
+          <span class="text-muted extra-small">Datos, logo, banner y políticas</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'listar_habitaciones' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile"><i class="bi bi-door-open"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Administrar habitaciones</h3>
+          <span class="text-muted extra-small">Precios, fotos, estados y pisos</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'listar_tipos' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile"><i class="bi bi-tags"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Tipos de habitación</h3>
+          <span class="text-muted extra-small">Categorías y capacidades</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'listar_servicios' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile"><i class="bi bi-bell"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Administrar servicios</h3>
+          <span class="text-muted extra-small">Tarifas de servicios adicionales</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-6 col-xl-4">
+    <a href="{% url 'matriz_permisos' %}" class="panel panel-hover h-100 text-decoration-none d-block">
+      <div class="panel-body d-flex align-items-center gap-3">
+        <span class="icon-tile info"><i class="bi bi-shield-lock"></i></span>
+        <div>
+          <h3 class="h6 fw-bold mb-0 text-dark">Matriz de permisos</h3>
+          <span class="text-muted extra-small">Acceso por rol (RN10)</span>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </div>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+
+{% include 'inc/footer.html' %}

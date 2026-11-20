@@ -1,0 +1,176 @@
+{% load hotel_extras l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head no-print">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-door-open"></i></div>
+        <div>
+            <h1 class="page-title">Reporte de habitaciones</h1>
+            <p class="page-subtitle">Inventario, estado, tarifas e ingresos generados por cada habitación.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-light border btn-sm rounded-3" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Exportar
+        </button>
+        <a href="{% url 'reportes_index' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Habitaciones</span>
+                    <p class="kpi-value">{{ total }}</p>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-building"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ocupadas</span>
+                    <p class="kpi-value text-danger">{{ ocupadas }}</p>
+                </div>
+                <div class="icon-tile sm danger"><i class="bi bi-door-closed"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ocupación</span>
+                    <p class="kpi-value">{{ porcentaje|unlocalize }}%</p>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-pie-chart"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ingresos asociados</span>
+                    <p class="kpi-value" style="font-size:1.2rem;">{{ ingresos_total|pesos }}</p>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-cash-stack"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar no-print">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+            <label class="form-label" for="repHabBuscar">Buscar</label>
+            <input type="text" id="repHabBuscar" name="buscar" value="{{ buscar }}" class="form-control form-control-sm" placeholder="Número o tipo">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="repHabEstado">Estado</label>
+            <select id="repHabEstado" name="estado" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for valor, etiqueta in estados %}
+                <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="repHabTipo">Tipo</label>
+            <select id="repHabTipo" name="tipo" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for t in tipos %}
+                <option value="{{ t.id }}" {% if tipo == t.id|stringformat:'s' %}selected{% endif %}>{{ t.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-3">
+            <label class="form-label" for="repHabAlojamiento">Alojamiento</label>
+            <select id="repHabAlojamiento" name="alojamiento" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for a in alojamientos %}
+                <option value="{{ a.id }}" {% if alojamiento == a.id|stringformat:'s' %}selected{% endif %}>{{ a.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold flex-fill">Filtrar</button>
+            {% if buscar or estado or tipo or alojamiento %}
+            <a href="{% url 'reporte_habitaciones' %}" class="btn btn-light border btn-sm rounded-3">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-table"></i> Detalle de habitaciones</h2>
+        <div class="d-flex gap-2">
+            <span class="pill pill-success">{{ disponibles }} libres</span>
+            <span class="pill pill-danger">{{ ocupadas }} ocupadas</span>
+            <span class="pill pill-warning text-dark">{{ mantenimiento }} mantenimiento</span>
+        </div>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Habitación</th>
+                    <th>Tipo</th>
+                    <th>Capacidad</th>
+                    <th>Piso</th>
+                    <th>Tarifa / noche</th>
+                    <th>Estado</th>
+                    <th>Reservas</th>
+                    <th>Ingresos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in habitaciones %}
+                <tr>
+                    <td>
+                        <strong class="text-dark">Hab. {{ h.numero }}</strong>
+                        <span class="d-block text-muted extra-small">{{ h.alojamiento.nombre }}</span>
+                    </td>
+                    <td>{{ h.tipo.nombre }}</td>
+                    <td>{{ h.capacidad }}</td>
+                    <td>{{ h.piso }}</td>
+                    <td>{{ h.precio_noche|pesos }}</td>
+                    <td>
+                        {% if h.estado == 'DISPONIBLE' %}
+                        <span class="pill pill-success">Disponible</span>
+                        {% elif h.estado == 'OCUPADA' %}
+                        <span class="pill pill-danger">Ocupada</span>
+                        {% else %}
+                        <span class="pill pill-warning text-dark">Mantenimiento</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="pill pill-secondary">{{ h.num_reservas }}</span></td>
+                    <td class="fw-semibold text-dark">{{ h.ingresos|default:0|pesos }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-door-closed"></i>
+                            <p>No hay habitaciones con los filtros seleccionados.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 py-3 d-flex flex-wrap justify-content-between align-items-center gap-2 border-top">
+        <span class="text-muted extra-small">Tarifa promedio: <strong class="text-dark">{{ precio_promedio|pesos }}</strong></span>
+        {% include 'publico/inc/paginacion.html' with pagina=habitaciones %}
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

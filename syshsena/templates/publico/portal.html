@@ -1,0 +1,542 @@
+{% load static hotel_extras %}
+{% include 'publico/inc/header.html' with es_publico=True %}
+
+<!-- ===================== HERO ===================== -->
+<section class="pw-hero">
+    <div class="pw-hero-media">
+        <video autoplay muted loop playsinline preload="metadata" poster="{{ MEDIA_URL }}sitios/riohacha-atardecer.jpg">
+            <source src="{{ MEDIA_URL }}hero/riohacha-hero.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="container pw-hero-inner">
+        <i class="bi bi-brightness-high-fill pw-sunburst-icon"></i> <!--ICONO ARIBBA DEL TITULO PRINCIPAL-->
+        <h1 class="pw-hero-title">{{ hotel.ciudad|default:"Riohacha"|upper }}</h1>
+
+
+        <p class="pw-hero-lead">
+            Descansa frente al Caribe en {{ hotel.nombre|default:"Posada Wayra" }}, a pasos del mar
+            y del centro histórico de {{ hotel.ciudad|default:"Riohacha" }}.
+        </p>
+
+        
+
+
+        <div class="pw-search-card pw-portal-search-card">
+            <form method="get" action="{% url 'posada_habitaciones' %}" data-search-dates class="pw-search-form">
+                <!-- FECHAS -->
+                <div class="pw-search-field" data-datepicker-field>
+                    <button type="button" class="pw-search-trigger" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        <span class="pw-search-icon"><i class="bi bi-calendar3"></i></span>
+                        <span class="pw-search-text">
+                            <span class="pw-search-label">Cuándo</span>
+                            <strong class="pw-search-value" data-date-summary>Entrada ━ Salida</strong>
+                        </span>
+                    </button>
+
+                    <div class="dropdown-menu pw-calendar-popover shadow-lg border-0 p-4">
+                        <div class="pw-calendar-header d-flex justify-content-between align-items-center mb-3">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle" id="pwPrevMonth" aria-label="Mes anterior"><i class="bi bi-chevron-left"></i></button>
+                            <span class="fw-bold text-dark fs-6" id="pwCalendarRangeLabel" aria-live="polite">Selecciona tus fechas</span>
+                            <button type="button" class="btn btn-sm btn-light rounded-circle" id="pwNextMonth" aria-label="Mes siguiente"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+
+                        <div class="pw-calendar-grid-wrapper">
+                            <div class="pw-month-block" id="monthBlock1"></div>
+                            <div class="pw-month-block" id="monthBlock2"></div>
+                        </div>
+                        <p class="text-muted extra-small mt-3 mb-0">Tarifa por habitación/noche. Consulta el precio de cada habitación.</p>
+                    </div>
+
+                    <input type="hidden" name="fecha_inicio" id="fecha_inicio_val" value="{{ filtros.entrada|date:'Y-m-d' }}">
+                    <input type="hidden" name="fecha_fin" id="fecha_fin_val" value="{{ filtros.salida|date:'Y-m-d' }}">
+                </div>
+
+                <!-- SELECTOR DE HUÉSPEDES -->
+                <div class="pw-search-field" data-guest-selector
+                    data-adultos-inicial="{{ filtros.adultos }}"
+                    data-ninos-inicial="{{ filtros.ninos }}"
+                    data-max-adultos="{{ limites_busqueda.adultos }}"
+                    data-max-ninos="{{ limites_busqueda.ninos }}">
+                    <button type="button" class="pw-search-trigger" data-bs-toggle="dropdown"
+                            data-bs-auto-close="outside" aria-expanded="false" aria-label="Seleccionar huéspedes">
+                        <span class="pw-search-icon"><i class="bi bi-people"></i></span>
+                        <span class="pw-search-text">
+                            <span class="pw-search-label">Quiénes</span>
+                            <strong class="pw-search-value" data-guest-summary>
+                                {{ filtros.adultos }} adulto{{ filtros.adultos|pluralize }} · 1 habitación
+                            </strong>
+                        </span>
+                        <i class="bi bi-chevron-down pw-search-caret"></i>
+                    </button>
+                    <div class="dropdown-menu pw-guest-panel shadow-lg border-0">
+                        <div class="pw-guest-row">
+                            <div><strong>Adultos</strong><span>mayores de {{ hotel.edad_max_nino|default_if_none:11 }} años</span></div>
+                            <div class="pw-guest-stepper">
+                                <button type="button" data-guest-step="adultos" data-step="-1" aria-label="Quitar adulto"><i class="bi bi-dash"></i></button>
+                                <output data-guest-count="adultos">{{ filtros.adultos }}</output>
+                                <button type="button" data-guest-step="adultos" data-step="1" aria-label="Agregar adulto"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="pw-guest-row">
+                            <div><strong>Niños</strong><span>hasta {{ hotel.edad_max_nino|default_if_none:11 }} años</span></div>
+                            <div class="pw-guest-stepper">
+                                <button type="button" data-guest-step="ninos" data-step="-1" aria-label="Quitar niño"><i class="bi bi-dash"></i></button>
+                                <output data-guest-count="ninos">{{ filtros.ninos }}</output>
+                                <button type="button" data-guest-step="ninos" data-step="1" aria-label="Agregar niño"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="p-2 pt-2 text-center">
+                            <small class="text-muted d-block mb-2 pw-occupancy-help">
+                                Hasta {{ limites_busqueda.adultos }} adultos y {{ limites_busqueda.ninos }} niños según el tipo. Revisa la capacidad total de cada habitación.
+                            </small>
+                            <button type="button" class="btn btn-primary btn-sm w-100 rounded-pill fw-semibold" data-guest-apply>Aplicar</button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="adultos" data-guest-input="adultos" value="{{ filtros.adultos }}">
+                    <input type="hidden" name="ninos" data-guest-input="ninos" value="{{ filtros.ninos }}">
+                    <input type="hidden" name="huespedes" data-guest-input="total" value="{{ filtros.huespedes }}">
+                </div>
+
+                <button type="submit" class="pw-search-submit">
+                    <i class="bi bi-search"></i><span>Buscar</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<!-- ===================== DESCUBRE ICONO ===================== -->
+<section class="pw-discover">
+    <div class="container pw-discover-grid">
+        
+        <div class="pw-location-card" id="pwMapCard">
+            <div class="pw-location-map-wrap">
+                <div class="pw-map-shield" id="pwMapShield">
+                    <span class="pw-map-hint">
+                        <i class="bi bi-keyboard me-1"></i> Mantén <kbd>Ctrl</kbd> o haz clic para explorar el mapa
+                    </span>
+                </div>
+
+                <iframe
+                    class="pw-location-iframe"
+                    src="https://maps.google.com/maps?q=Cl.%201%20%23%209-95,%20Riohacha,%20La%20Guajira,%20Colombia&z=16&output=embed"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Ubicación Posada Wayra"></iframe>
+            </div>
+
+            <div class="pw-location-footer">
+                <div class="pw-location-details">
+                    <span class="pw-location-tag">
+                        <i class="bi bi-geo-alt-fill"></i> NUESTRA UBICACIÓN
+                    </span>
+                    <strong class="pw-location-address">
+                        {{ hotel.direccion_completa|default:"Cl. 1 # 9-95, Riohacha, La Guajira" }}
+                    </strong>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=Cl.+1+%23+9-95,Riohacha,La+Guajira,Colombia"
+                   target="_blank" rel="noopener" class="pw-location-btn" title="Abrir en Google Maps">
+                    <span>Cómo llegar</span>
+                    <i class="bi bi-arrow-up-right"></i>
+                </a>
+            </div>
+        </div>
+        <!-- ===================== FIN ICONO ===================== -->
+
+        <!-- ===================== DESCUBRE TEXTO ===================== -->
+        <div class="pw-discover-copy">
+            <h2 class="pw-display">DESCUBRE {{ hotel.ciudad|default:"RIOHACHA"|upper }} &amp; {{ hotel.departamento|default:"LA GUAJIRA"|upper }}</h2>
+            <p>
+                En el corazón de {{ hotel.ciudad|default:"Riohacha" }}, {{ hotel.nombre|default:"Posada Wayra" }}
+                te recibe con la brisa del Caribe, habitaciones frescas y una atención cercana.
+            </p>
+            <p>
+                Playas, gastronomía y cultura Wayuu a pocos minutos: la mejor base para recorrer
+                La Guajira y volver a descansar frente al mar.
+            </p>
+        </div>
+    </div>
+</section>
+<!-- ===================== TEXTO FIN ===================== -->
+
+
+
+
+<!-- ===================== VIVE LA GUAJIRA (ÁLBUM + VISOR ESTILO GOOGLE FOTOS) ===================== -->
+<section class="pw-guajira-showcase" id="galeria">
+    <div class="container">
+        <div class="pw-gs-header pw-reveal">
+            <h2 class="pw-display mb-3">VIVE LA GUAJIRA</h2>
+            <p class="pw-gs-lead">
+                Haz clic en cualquier fotografía para abrir el álbum en pantalla completa y deslizar por todas sus imágenes.
+            </p>
+        </div>
+
+
+
+
+<div class="pw-gs-stack">
+            {% for sitio in sitios %}
+                <!-- FORMATO DIVIDIDO ASIMÉTRICO PARA TODOS LOS SITIOS -->
+                <!-- alternen de lado foto -->
+                <article class="pw-gs-item pw-gs-split {% if forloop.counter|divisibleby:2 %}pw-gs-reverse{% endif %} pw-reveal" data-album-id="{{ sitio.id }}">
+                    <div>
+                        <div class="pw-gs-media-frame">
+                            <img class="pw-gs-img pw-open-lightbox"
+                                data-album="{{ sitio.id }}"
+                                data-index="0"
+                                src="{% if sitio.imagen %}{{ MEDIA_URL }}{{ sitio.imagen.name }}{% else %}{{ MEDIA_URL }}sitios/riohacha-atardecer.jpg{% endif %}"
+                                data-fallback="{{ MEDIA_URL }}sitios/riohacha-atardecer.jpg"
+                                onerror="this.onerror=null; this.src=this.dataset.fallback;"
+                                alt="{{ sitio.nombre }}">
+
+                            <div class="pw-gs-badge">
+                                <i class="bi bi-compass me-1"></i>
+                                {{ sitio.municipio|upper }}{% if sitio.distancia_km %} · {{ sitio.distancia_km|floatformat:0 }} KM{% endif %}
+                            </div>
+                        </div>
+
+                        {% if sitio.fotografias.all %}
+                        <div class="pw-album-strip">
+                            <button type="button" class="pw-album-thumb pw-open-lightbox" data-album="{{ sitio.id }}" data-index="0">
+                                <img src="{% if sitio.imagen %}{{ MEDIA_URL }}{{ sitio.imagen.name }}{% else %}{{ MEDIA_URL }}sitios/riohacha-atardecer.jpg{% endif %}" alt="{{ sitio.nombre }} 1">
+                            </button>
+                            {% for foto in sitio.fotografias.all %}
+                            <button type="button" class="pw-album-thumb pw-open-lightbox" data-album="{{ sitio.id }}" data-index="{{ forloop.counter }}">
+                                <img src="{{ MEDIA_URL }}{{ foto.imagen.name }}" alt="{{ sitio.nombre }} {{ forloop.counter|add:1 }}">
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="pw-gs-split-copy">
+                        <div class="pw-gs-hud-line"></div>
+                        <span class="pw-gs-kicker">DESTINO RECOMENDADO · 0{{ forloop.counter }}</span>
+                        <h3 class="pw-gs-title">{{ sitio.nombre|upper }}</h3>
+                        <p class="pw-gs-desc">
+                            {{ sitio.descripcion|default:"Descubre este rincón emblemático de La Guajira con salida temprana desde Riohacha. Pregunta en recepción por recomendaciones de transporte y tours locales." }}
+                        </p>
+                    </div>
+                </article>
+            {% empty %}
+                <p class="text-center text-white-50 py-5">Pronto publicaremos nuestros destinos recomendados.</p>
+            {% endfor %}
+        </div>
+
+
+
+
+<!-- ===================== VISOR PANTALLA COMPLETA ESTILO GOOGLE FOTOS ===================== -->
+<div id="pwPhotosLightbox" class="pw-lb-overlay" aria-hidden="true" role="dialog">
+    <div class="pw-lb-topbar">
+        <button type="button" id="pwLbClose" class="pw-lb-icon-btn" title="Cerrar (Esc)">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <div class="pw-lb-title-wrap">
+            <strong id="pwLbTitle">Destino</strong>
+            <span id="pwLbCounter">1 / 1</span>
+        </div>
+
+    </div>
+
+    <div class="pw-lb-stage" id="pwLbStage">
+        <button type="button" id="pwLbPrev" class="pw-lb-nav pw-lb-prev" aria-label="Anterior">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div class="pw-lb-img-box">
+            <img id="pwLbImg" src="" alt="Fotografía ampliada">
+        </div>
+
+        <button type="button" id="pwLbNext" class="pw-lb-nav pw-lb-next" aria-label="Siguiente">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <div class="pw-lb-thumbs" id="pwLbThumbs"></div>
+</div>
+
+<!-- DATOS DE ÁLBUMES PARA EL VISOR -->
+<script id="pwAlbumsData" type="application/json">
+{
+{% for sitio in sitios %}
+    "{{ sitio.id }}": {
+        "titulo": "{{ sitio.nombre|escapejs }} · {{ sitio.municipio|escapejs }}",
+        "fotos": [
+            "{% if sitio.imagen %}{{ MEDIA_URL }}{{ sitio.imagen.name }}{% else %}{{ MEDIA_URL }}sitios/riohacha-atardecer.jpg{% endif %}"{% for foto in sitio.fotografias.all %},
+            "{{ MEDIA_URL }}{{ foto.imagen.name }}"{% endfor %}
+        ]
+    }{% if not forloop.last %},{% endif %}
+{% endfor %}
+}
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const albums = JSON.parse(document.getElementById("pwAlbumsData").textContent || "{}");
+    const lightbox = document.getElementById("pwPhotosLightbox");
+    const lbImg = document.getElementById("pwLbImg");
+    const lbTitle = document.getElementById("pwLbTitle");
+    const lbCounter = document.getElementById("pwLbCounter");
+    const lbThumbs = document.getElementById("pwLbThumbs");
+    const btnClose = document.getElementById("pwLbClose");
+    const btnPrev = document.getElementById("pwLbPrev");
+    const btnNext = document.getElementById("pwLbNext");
+
+    let currentPhotos = [];
+    let currentIndex = 0;
+    let wheelLock = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function renderPhoto(index) {
+        if (!currentPhotos.length) return;
+        currentIndex = (index + currentPhotos.length) % currentPhotos.length;
+
+        lbImg.classList.add("is-switching");
+        setTimeout(() => {
+            lbImg.src = currentPhotos[currentIndex];
+            lbImg.classList.remove("is-switching");
+        }, 90);
+
+        lbCounter.textContent = `${currentIndex + 1} / ${currentPhotos.length}`;
+
+        const thumbButtons = lbThumbs.querySelectorAll(".pw-lb-thumb-btn");
+        thumbButtons.forEach((btn, idx) => {
+            btn.classList.toggle("active", idx === currentIndex);
+        });
+    }
+
+    function openAlbum(albumId, startIndex = 0) {
+        const album = albums[albumId];
+        if (!album || !album.fotos || !album.fotos.length) return;
+
+        currentPhotos = album.fotos;
+        lbTitle.textContent = album.titulo;
+
+        // Construir miniaturas inferiores
+        lbThumbs.innerHTML = "";
+        currentPhotos.forEach((url, idx) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "pw-lb-thumb-btn";
+            btn.innerHTML = `<img src="${url}" alt="Miniatura ${idx + 1}">`;
+            btn.addEventListener("click", () => renderPhoto(idx));
+            lbThumbs.appendChild(btn);
+        });
+
+        btnPrev.style.display = currentPhotos.length > 1 ? "flex" : "none";
+        btnNext.style.display = currentPhotos.length > 1 ? "flex" : "none";
+
+        lightbox.classList.add("is-open");
+        lightbox.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        renderPhoto(startIndex);
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove("is-open");
+        lightbox.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+    }
+
+    // Abrir al hacer clic en cualquier portada, botón o miniatura
+    document.querySelectorAll(".pw-open-lightbox").forEach((el) => {
+        el.addEventListener("click", function (e) {
+            e.stopPropagation();
+            const albumId = this.dataset.album;
+            const idx = parseInt(this.dataset.index || "0", 10);
+            openAlbum(albumId, idx);
+        });
+    });
+
+    btnClose.addEventListener("click", closeLightbox);
+    btnPrev.addEventListener("click", () => renderPhoto(currentIndex - 1));
+    btnNext.addEventListener("click", () => renderPhoto(currentIndex + 1));
+
+    // Cerrar si hace clic fuera de la imagen
+    lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox || e.target.id === "pwLbStage") {
+            closeLightbox();
+        }
+    });
+
+    // CAMBIAR DE FOTO AL DESLIZAR LA RUEDA DEL MOUSE HACIA ABAJO / ARRIBA
+    lightbox.addEventListener("wheel", (e) => {
+        if (!lightbox.classList.contains("is-open")) return;
+        e.preventDefault();
+        if (wheelLock || currentPhotos.length <= 1) return;
+
+        wheelLock = true;
+        if (e.deltaY > 0 || e.deltaX > 0) {
+            renderPhoto(currentIndex + 1); // Rueda hacia abajo -> siguiente foto
+        } else if (e.deltaY < 0 || e.deltaX < 0) {
+            renderPhoto(currentIndex - 1); // Rueda hacia arriba -> foto anterior
+        }
+        setTimeout(() => { wheelLock = false; }, 220);
+    }, { passive: false });
+
+    // Navegación con teclado (Flechas y Escape)
+    document.addEventListener("keydown", (e) => {
+        if (!lightbox.classList.contains("is-open")) return;
+        if (e.key === "Escape") closeLightbox();
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") renderPhoto(currentIndex + 1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") renderPhoto(currentIndex - 1);
+    });
+
+    // Navegación táctil en celular (deslizar dedo)
+    lightbox.addEventListener("touchstart", (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    lightbox.addEventListener("touchend", (e) => {
+        const dx = e.changedTouches[0].screenX - touchStartX;
+        const dy = e.changedTouches[0].screenY - touchStartY;
+        if (Math.abs(dx) > 40 || Math.abs(dy) > 40) {
+            if (dx < 0 || dy < 0) renderPhoto(currentIndex + 1);
+            else renderPhoto(currentIndex - 1);
+        }
+    }, { passive: true });
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Control de mapa interactivo con tecla Ctrl
+const mapCard = document.getElementById("pwMapCard");
+const mapWrap = mapCard ? mapCard.querySelector(".pw-location-map-wrap") : null;
+const mapShield = document.getElementById("pwMapShield");
+
+if (mapWrap && mapShield) {
+    let manualUnlock = false;
+
+    // Desbloquear mientras se mantiene presionado Ctrl
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Control") {
+            mapWrap.classList.add("is-unlocked");
+        }
+    });
+
+    // Volver a bloquear al soltar Ctrl (si no se hizo clic manual)
+    window.addEventListener("keyup", (e) => {
+        if (e.key === "Control" && !manualUnlock) {
+            mapWrap.classList.remove("is-unlocked");
+        }
+    });
+
+    // Mostrar aviso si intenta usar la rueda del ratón sin Ctrl
+    mapShield.addEventListener("wheel", () => {
+        mapShield.classList.add("show-hint");
+        clearTimeout(mapShield._hintTimer);
+        mapShield._hintTimer = setTimeout(() => {
+            mapShield.classList.remove("show-hint");
+        }, 1600);
+    }, { passive: true });
+
+    // También permitir desbloquear haciendo clic directo sobre el mapa
+    mapShield.addEventListener("click", () => {
+        manualUnlock = true;
+        mapWrap.classList.add("is-unlocked");
+    });
+
+    // Bloquear de nuevo cuando el mouse sale de la tarjeta
+    mapCard.addEventListener("mouseleave", () => {
+        manualUnlock = false;
+        mapWrap.classList.remove("is-unlocked");
+    });
+}
+</script>
+
+{% with wa=hotel.whatsapp|default:hotel.telefono|default:"+57 322 220 352" %}
+<a class="pw-wa" href="https://wa.me/{{ wa|cut:' '|cut:'+'|cut:'-'|cut:'('|cut:')' }}" target="_blank" rel="noopener">
+    <span class="pw-wa-circle"><i class="bi bi-whatsapp"></i></span>
+    <span class="pw-wa-label">Escríbenos</span>
+</a>
+{% endwith %}
+
+{% if tarifas_calendario %}{{ tarifas_calendario|json_script:'wayra-tarifas-calendario' }}{% endif %}
+{% include 'publico/inc/footer.html' %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

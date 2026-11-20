@@ -1,0 +1,93 @@
+{% load static l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile info"><i class="bi bi-pencil-square"></i></div>
+        <div>
+            <h1 class="page-title">Editar servicio</h1>
+            <p class="page-subtitle">{{ servicio.nombre }} · {{ servicio.alojamiento.nombre }}</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'listar_servicios' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Volver al catálogo
+        </a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+<div class="panel form-panel">
+    <div class="panel-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <div class="form-section-title"><i class="bi bi-card-heading"></i> Información del servicio</div>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="nombre">Nombre del servicio / plato *</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" value="{{ servicio.nombre }}" required>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="momentoDia">Categoría / momento del día</label>
+                    <select id="momentoDia" name="momento_dia" class="form-select">
+                        {% for momento in momentos %}
+                        <option value="{{ momento }}" {% if servicio.momento_dia == momento %}selected{% endif %}>{{ momento }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="precio">Precio (COP) *</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">$</span>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0" class="form-control" value="{{ servicio.precio|unlocalize }}" required>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="alojamiento">Alojamiento / sede *</label>
+                    <select id="alojamiento" name="alojamiento" class="form-select" required>
+                        {% for a in alojamientos %}
+                        <option value="{{ a.id }}" {% if servicio.alojamiento_id == a.id %}selected{% endif %}>{{ a.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section-title mt-4"><i class="bi bi-image"></i> Imagen del servicio</div>
+            <div class="row g-3 align-items-center">
+                <div class="col-12 col-md-4">
+                    <div class="servicio-photo rounded-3 border" style="height:140px;">
+                        <img src="{% if servicio.imagen %}{{ MEDIA_URL }}{{ servicio.imagen.name }}{% else %}{{ MEDIA_URL }}alojamientos/arepahuevo.jpg{% endif %}"
+                             alt="{{ servicio.nombre }}"
+                             data-fallback="{{ MEDIA_URL }}alojamientos/arepahuevo.jpg"
+                             onerror="this.onerror=null; this.src=this.dataset.fallback;">
+                    </div>
+                </div>
+                <div class="col-12 col-md-8">
+                    <label class="form-label" for="imagenArchivo">Reemplazar imagen</label>
+                    <input type="file" id="imagenArchivo" name="imagen_archivo" class="form-control" accept="image/*">
+                    <div class="form-text mb-3">Déjalo vacío para conservar la imagen actual.</div>
+                    <label class="form-label" for="imagenUrl">URL de imagen</label>
+                    <input type="url" id="imagenUrl" name="imagen_url" class="form-control" value="{{ servicio.imagen_url|default:'' }}" placeholder="https://...">
+                </div>
+            </div>
+
+            <div class="form-section-title mt-4"><i class="bi bi-text-paragraph"></i> Descripción</div>
+            <textarea name="descripcion" class="form-control" rows="3" placeholder="Ingredientes, preparación tradicional o condiciones del servicio...">{{ servicio.descripcion|default:'' }}</textarea>
+
+            <div class="form-actions">
+                <a href="{% url 'listar_servicios' %}" class="btn btn-light border rounded-3 px-3">Cancelar</a>
+                <button type="submit" class="btn btn-primary rounded-3 px-4 fw-semibold">
+                    <i class="bi bi-check2-circle me-1"></i> Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

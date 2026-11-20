@@ -1,0 +1,218 @@
+{% load static hotel_extras %}
+{% include 'publico/inc/header.html' with es_publico=True %}
+
+<div class="page-head">
+  <div class="page-head-main">
+    <div class="icon-tile"><i class="bi bi-calendar-check"></i></div>
+    <div>
+      <h1 class="page-title">Mis reservas</h1>
+      <p class="page-subtitle">Gestión de tus estadías en {{ hotel.nombre|default:"Posada Wayra" }}</p>
+    </div>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'posada_habitaciones' %}" class="btn btn-primary btn-sm px-3">
+      <i class="bi bi-plus-lg me-1"></i>Nueva reserva
+    </a>
+  </div>
+</div>
+
+<h2 class="h6 text-uppercase text-muted fw-bold mb-3"><i class="bi bi-clock-history me-1"></i>Reservas vigentes</h2>
+
+{% for r in vigentes %}
+  <div class="panel mb-4 overflow-hidden border shadow-sm">
+    <!-- ENCABEZADO DE TARJETA DE RESERVA -->
+    <div class="panel-head bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 py-3 px-3 px-md-4 border-bottom">
+      <div class="d-flex align-items-center gap-2">
+        <h3 class="h5 fw-bold mb-0"><a href="{% url 'cliente_ver_reserva' r.id %}" class="text-dark text-decoration-none">Reserva #{{ r.id }} <i class="bi bi-box-arrow-up-right extra-small" aria-hidden="true"></i></a></h3>
+        <span class="pill {% if r.estado == 'CONFIRMADA' %}pill-success{% elif r.estado == 'PENDIENTE' %}pill-warning{% elif r.estado == 'EN_ESTADIA' %}pill-info{% else %}pill-secondary{% endif %}">
+          {{ r.get_estado_display }}
+        </span>
+        {% if r.cancelacion_solicitada %}
+          <span class="pill pill-danger"><i class="bi bi-exclamation-triangle me-1"></i>Cancelación solicitada</span>
+        {% endif %}
+      </div>
+      <div class="text-muted extra-small">
+        <i class="bi bi-building me-1"></i>Habitación {{ r.habitacion.numero }} · {{ r.habitacion.tipo.nombre }}
+      </div>
+    </div>
+
+    <!-- ALERTAS DE ESTADO -->
+    <div class="p-3 px-md-4 pb-0">
+      {% if r.estado == 'CONFIRMADA' %}
+        <div class="alert alert-success d-flex align-items-center gap-2 rounded-3 border-0 py-2 px-3 mb-0 small">
+          <i class="bi bi-heart-fill"></i>
+          <span>¡Te estamos esperando! Todo está listo para recibirte el <strong>{{ r.fecha_inicio|date:"d/m/Y" }}</strong>.</span>
+        </div>
+      {% elif r.estado == 'PENDIENTE' %}
+        <div class="alert alert-warning d-flex align-items-center gap-2 rounded-3 border-0 py-2 px-3 mb-0 small">
+          <i class="bi bi-hourglass-split"></i>
+          <span>Recepción está validando tu pago/abono. Te notificaremos en cuanto quede confirmada.</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- CUERPO DE LA RESERVA -->
+    <div class="p-3 p-md-4">
+      <div class="row g-4">
+        <!-- FOTO Y FECHAS -->
+        <div class="col-lg-4">
+          <div class="room-photo rounded-3 overflow-hidden mb-3" style="min-height: 180px; height: 180px;">
+            <img src="{% if r.habitacion.imagen %}{{ MEDIA_URL }}{{ r.habitacion.imagen.name }}{% else %}{{ MEDIA_URL }}habitaciones/default.jpg{% endif %}"
+                 data-fallback="{{ MEDIA_URL }}habitaciones/default.jpg"
+                 onerror="this.onerror=null; this.src=this.dataset.fallback;"
+                 alt="Habitación {{ r.habitacion.numero }}">
+            <div class="room-photo-caption">
+              <strong class="extra-small">Habitación {{ r.habitacion.numero }}</strong>
+              <span class="d-block extra-small">Piso {{ r.habitacion.piso }}</span>
+            </div>
+          </div>
+
+          <div class="bg-light rounded-3 p-3 extra-small">
+            <div class="row g-2">
+              <div class="col-6">
+                <span class="text-muted d-block"><i class="bi bi-calendar-check me-1"></i>Entrada</span>
+                <strong>{{ r.fecha_inicio|date:"d/m/Y" }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block"><i class="bi bi-calendar-x me-1"></i>Salida</span>
+                <strong>{{ r.fecha_fin|date:"d/m/Y" }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block"><i class="bi bi-moon-stars me-1"></i>Noches</span>
+                <strong>{{ r.noches }} noche{{ r.noches|pluralize }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block"><i class="bi bi-people me-1"></i>Capacidad</span>
+                <strong>{{ r.habitacion.capacidad }} pers.</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DESGLOSE ECONÓMICO Y MÉTODOS DE PAGO -->
+        <div class="col-lg-4">
+          <div class="border rounded-3 p-3 h-100 d-flex flex-column justify-content-between extra-small">
+            <div>
+              <h4 class="fw-bold mb-3 text-dark small"><i class="bi bi-wallet2 me-1"></i>Resumen financiero</h4>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Hospedaje ({{ r.noches }} n.)</span>
+                <strong>{{ r.valor_habitacion_total|pesos }}</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Servicios adicionales</span>
+                <strong>{{ r.valor_servicios_total|pesos }}</strong>
+              </div>
+              <div class="d-flex justify-content-between pb-2 mb-2 border-bottom">
+                <span class="text-muted fw-bold">Total reserva</span>
+                <strong class="fs-6 text-dark">{{ r.gran_total|pesos }}</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Abono / pagado</span>
+                <span class="text-success fw-bold">{{ r.total_pagado|pesos }}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Saldo pendiente</span>
+                <span class="{% if r.saldo_pendiente > 0 %}text-warning{% else %}text-success{% endif %} fw-bold">{{ r.saldo_pendiente|pesos }}</span>
+              </div>
+            </div>
+
+            <!-- HISTORIAL DE PAGOS REGISTRADOS -->
+            <div class="pt-3 border-top mt-3">
+              <strong class="d-block text-muted mb-2 extra-small"><i class="bi bi-credit-card me-1"></i>Pagos / Métodos registrados</strong>
+              {% if r.pagos.all %}
+                <ul class="list-unstyled mb-0 extra-small">
+                  {% for p in r.pagos.all %}
+                    <li class="d-flex justify-content-between align-items-center py-1">
+                      <span><i class="bi bi-check2-circle text-success me-1"></i>{{ p.get_metodo_pago_display }} ({{ p.fecha_pago|date:"d/m" }})</span>
+                      <strong class="text-dark">{{ p.monto|pesos }}</strong>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <span class="text-muted fst-italic">Sin pagos registrados</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCIONES Y CANCELACIÓN -->
+        <div class="col-lg-4 d-flex flex-column justify-content-between">
+          <div class="border rounded-3 p-3 bg-light extra-small">
+            <h4 class="fw-bold mb-2 text-dark small"><i class="bi bi-stars me-1"></i>Servicios contratados</h4>
+            {% if r.servicios_consumidos.all %}
+              <ul class="list-unstyled mb-0">
+                {% for s in r.servicios_consumidos.all %}
+                  <li class="d-flex justify-content-between py-1 border-bottom border-white">
+                    <span>{{ s.servicio.nombre }} (x{{ s.cantidad }})</span>
+                    <strong>{{ s.subtotal|pesos }}</strong>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-0">No se agregaron servicios adicionales.</p>
+            {% endif %}
+          </div>
+
+          <div class="pt-3 d-flex flex-column gap-2">
+            <a href="https://wa.me/{{ hotel.whatsapp|default:hotel.telefono|cut:' '|cut:'+'|cut:'-'|cut:'('|cut:')' }}?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20reserva%20%23{{ r.id }}"
+               target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm w-100">
+              <i class="bi bi-whatsapp me-1"></i>Contactar recepción
+            </a>
+
+            {% if r.estado == 'PENDIENTE' or r.estado == 'CONFIRMADA' %}
+              {% if not r.cancelacion_solicitada %}
+                <form method="post" action="{% url 'cliente_solicitar_cancelacion' r.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                          data-confirm="¿Estás seguro de solicitar la cancelación de la reserva #{{ r.id }}?"
+                          data-titulo="Solicitar cancelación" data-accion="Sí, solicitar">
+                    <i class="bi bi-x-circle me-1"></i>Solicitar cancelación
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <div class="panel mb-4">
+    <div class="empty-state py-5 text-center">
+      <i class="bi bi-calendar-x fs-1 text-muted d-block mb-2"></i>
+      <p class="text-muted">No tienes reservas vigentes en este momento.</p>
+    </div>
+  </div>
+{% endfor %}
+
+{% if historial %}
+  <h2 class="h6 text-uppercase text-muted fw-bold mb-3 mt-5"><i class="bi bi-archive me-1"></i>Historial de reservas pasadas</h2>
+  <div class="panel mb-4">
+    <div class="table-shell">
+      <table class="table-clean">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Habitación</th>
+            <th>Fechas</th>
+            <th>Estado</th>
+            <th class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in historial %}
+            <tr>
+              <td class="fw-bold"><a href="{% url 'cliente_ver_reserva' r.id %}">#{{ r.id }}</a></td>
+              <td>Hab. {{ r.habitacion.numero }} · {{ r.habitacion.tipo.nombre }}</td>
+              <td>{{ r.fecha_inicio|date:"d/m/Y" }} – {{ r.fecha_fin|date:"d/m/Y" }}</td>
+              <td><span class="pill pill-secondary">{{ r.get_estado_display }}</span></td>
+              <td class="text-end fw-bold">{{ r.gran_total|pesos }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+{% include 'publico/inc/footer.html' %}

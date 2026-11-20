@@ -1,0 +1,102 @@
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile ok"><i class="bi bi-person-plus"></i></div>
+        <div>
+            <h1 class="page-title">Nuevo huésped</h1>
+            <p class="page-subtitle">Registra los datos personales para check-in y facturación.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'listar_huespedes' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Volver al directorio
+        </a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+<div class="panel form-panel">
+    <div class="panel-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="form-section-title"><i class="bi bi-person-vcard"></i> Identificación</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="tipoDocumento">Tipo de documento *</label>
+                    <select id="tipoDocumento" name="tipo_documento" class="form-select" required>
+                        <option value="">Seleccione...</option>
+                        {% for valor, etiqueta in tipos %}
+                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="numeroDocumento">Número de documento *</label>
+                    <input type="text" id="numeroDocumento" name="numero_documento" class="form-control" maxlength="20" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="nacionalidad">Nacionalidad</label>
+                    <input type="text" id="nacionalidad" name="nacionalidad" class="form-control" value="Colombiana">
+                </div>
+            </div>
+
+            <div class="form-section-title mt-4"><i class="bi bi-person"></i> Datos personales</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="nombre">Nombres *</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="apellido">Apellidos *</label>
+                    <input type="text" id="apellido" name="apellido" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-section-title mt-4"><i class="bi bi-geo-alt"></i> Contacto y residencia</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" name="telefono" class="form-control" placeholder="+57 300 000 0000">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="email">Correo electrónico</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="nombre@correo.com">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="direccion">Dirección</label>
+                    <input type="text" id="direccion" name="direccion" class="form-control" placeholder="Calle, número, barrio">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="ciudad">Ciudad de residencia</label>
+                    <input type="text" id="ciudad" name="ciudad_residencia" class="form-control" value="Bogotá">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="pais">País de residencia</label>
+                    <input type="text" id="pais" name="pais_residencia" class="form-control" value="Colombia">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="esExtranjero" name="es_extranjero">
+                        <label class="form-check-label" for="esExtranjero">Huésped extranjero</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'listar_huespedes' %}" class="btn btn-light border rounded-3 px-3">Cancelar</a>
+                <button type="submit" class="btn btn-primary rounded-3 px-4 fw-semibold">
+                    <i class="bi bi-check2-circle me-1"></i> Guardar huésped
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

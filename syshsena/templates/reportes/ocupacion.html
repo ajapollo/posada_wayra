@@ -1,0 +1,118 @@
+{% load l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head no-print">
+    <div class="page-head-main">
+        <div class="icon-tile info"><i class="bi bi-pie-chart"></i></div>
+        <div>
+            <h1 class="page-title">Reporte de ocupación</h1>
+            <p class="page-subtitle">Estado de habitaciones e índice de ocupación por alojamiento.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-light border btn-sm rounded-3" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Exportar
+        </button>
+        <a href="{% url 'reportes_index' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Habitaciones totales</span>
+                    <p class="kpi-value">{{ total|default:"0" }}</p>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-building"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ocupadas</span>
+                    <p class="kpi-value text-danger">{{ ocupadas|default:"0" }}</p>
+                </div>
+                <div class="icon-tile sm danger"><i class="bi bi-door-closed"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Disponibles</span>
+                    <p class="kpi-value text-success">{{ disponibles|default:"0" }}</p>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-door-open"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ocupación global</span>
+                    <p class="kpi-value">{{ porcentaje|unlocalize }}%</p>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-graph-up"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="text-dark extra-small">Capacidad ocupada actualmente</strong>
+            <span class="fw-semibold text-muted extra-small">{{ porcentaje|unlocalize }}%</span>
+        </div>
+        <div class="progress" style="height:10px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ porcentaje|unlocalize }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-building"></i> Detalle por alojamiento</h2>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Alojamiento</th>
+                    <th>Total habitaciones</th>
+                    <th>Ocupadas</th>
+                    <th>Disponibles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in por_alojamiento %}
+                <tr>
+                    <td><strong class="text-dark">{{ a.nombre }}</strong></td>
+                    <td>{{ a.total }}</td>
+                    <td><span class="pill pill-danger">{{ a.ocupadas }}</span></td>
+                    <td><span class="pill pill-success">{{ a.disponibles }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="bi bi-building"></i>
+                            <p>No hay alojamientos registrados.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

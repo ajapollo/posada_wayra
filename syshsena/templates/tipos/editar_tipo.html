@@ -1,0 +1,62 @@
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-tag"></i></div>
+        <div>
+            <h1 class="page-title">Editar tipo de habitación</h1>
+            <p class="page-subtitle">Actualiza la categoría {{ tipo.nombre }}.</p>
+        </div>
+    </div>
+    <a href="{% url 'listar_tipos' %}" class="btn btn-light border btn-sm rounded-pill px-3">Volver al listado</a>
+</div>
+
+<div class="alert alert-info">Al editar este tipo cambias la capacidad de todas sus habitaciones. No se permiten límites incompatibles con reservas vigentes.</div>
+{% if error or form.errors %}
+<div class="alert alert-danger" role="alert">
+    {% if error %}<p class="mb-1">{{ error }}</p>{% endif %}
+    {{ form.non_field_errors }}
+    {% for campo in form %}{% if campo.errors %}<div>{{ campo.label }}: {{ campo.errors }}</div>{% endif %}{% endfor %}
+</div>
+{% endif %}
+
+<div class="panel form-panel mb-4">
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-section-title"><i class="bi bi-tags"></i> Datos del tipo</div>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="nombreTipo">Nombre *</label>
+                    <input type="text" id="nombreTipo" name="nombre" class="form-control" maxlength="50" value="{{ form.nombre.value|default_if_none:'' }}" required>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="capacidadTipo">Ocupación total máxima *</label>
+                    <input type="number" id="capacidadTipo" name="capacidad" class="form-control" min="1" step="1" value="{{ form.capacidad.value|default_if_none:2 }}" aria-describedby="ayudaCapacidad" required>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="max_adultos">Máximo de adultos *</label>
+                    <input type="number" id="max_adultos" name="max_adultos" class="form-control" min="1" step="1" value="{{ form.max_adultos.value|default_if_none:1 }}" aria-describedby="ayudaCapacidad" required>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="max_ninos">Máximo de niños *</label>
+                    <input type="number" id="max_ninos" name="max_ninos" class="form-control" min="0" step="1" value="{{ form.max_ninos.value|default_if_none:1 }}" aria-describedby="ayudaCapacidad" required>
+                </div>
+                <div class="col-12" id="ayudaCapacidad">
+                    <p class="form-text mb-1">Los niños cuentan dentro de ocupación total. Al menos un adulto.</p>
+                    <p class="form-text mb-0">La ocupación total se guarda tal como la indiques: no es la suma de los máximos. Adultos: entre 1 y el total. Niños: entre 0 y el total menos 1.</p>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="descripcionTipo">Descripción</label>
+                    <textarea id="descripcionTipo" name="descripcion" class="form-control" rows="3">{{ form.descripcion.value|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+            <div class="form-actions">
+                <a href="{% url 'listar_tipos' %}" class="btn btn-light border rounded-pill px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Actualizar tipo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

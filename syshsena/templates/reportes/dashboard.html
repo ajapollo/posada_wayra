@@ -1,0 +1,418 @@
+{% load hotel_extras l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-grid-1x2"></i></div>
+        <div>
+            <h1 class="page-title">Panel gerencial</h1>
+            <p class="page-subtitle">Indicadores de {{ hotel.nombre|default:"Posada Wayra" }} · {{ periodo_label }}</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'pagos' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-credit-card me-1"></i> Pagos
+        </a>
+        <a href="{% url 'reportes_index' %}" class="btn btn-primary btn-sm rounded-3 fw-semibold">
+            <i class="bi bi-bar-chart-line me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+{% if reservas_pendientes %}
+<div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2" role="alert">
+    <span class="d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>{{ reservas_pendientes }} reserva{{ reservas_pendientes|pluralize }} pendiente{{ reservas_pendientes|pluralize }} por confirmar.</strong>
+    </span>
+    <a href="{% url 'listar_reservas' %}?estado=PENDIENTE" class="btn btn-warning btn-sm rounded-3 fw-semibold">Revisar</a>
+</div>
+{% endif %}
+
+{% if saldo_por_cobrar %}
+<div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2" role="alert">
+    <span class="d-flex align-items-center gap-2">
+        <i class="bi bi-cash-coin"></i>
+        <span>Saldo por cobrar de reservas vigentes: <strong>{{ saldo_por_cobrar|pesos }}</strong>.</span>
+    </span>
+    <a href="{% url 'pagos' %}" class="btn btn-info btn-sm rounded-3 fw-semibold text-white">Gestionar pagos</a>
+</div>
+{% endif %}
+
+<div class="toolbar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+            <label class="form-label" for="dashPeriodo">Periodo de ingresos</label>
+            <select id="dashPeriodo" name="periodo" class="form-select form-select-sm">
+                <option value="mes" {% if periodo == 'mes' %}selected{% endif %}>Este mes</option>
+                <option value="semana" {% if periodo == 'semana' %}selected{% endif %}>Esta semana</option>
+                <option value="hoy" {% if periodo == 'hoy' %}selected{% endif %}>Hoy</option>
+                <option value="rango" {% if periodo == 'rango' %}selected{% endif %}>Rango personalizado</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="dashDesde">Desde</label>
+            <input type="date" id="dashDesde" name="desde" value="{{ request.GET.desde }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="dashHasta">Hasta</label>
+            <input type="date" id="dashHasta" name="hasta" value="{{ request.GET.hasta }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold">Aplicar</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-light border btn-sm rounded-3">Restablecer</a>
+        </div>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Habitaciones totales</span>
+                    <p class="kpi-value">{{ total_habitaciones|default:"0" }}</p>
+                    <span class="kpi-hint">{{ habitaciones_mantenimiento }} en mantenimiento</span>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-building"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Disponibles</span>
+                    <p class="kpi-value text-success">{{ habitaciones_disponibles|default:"0" }}</p>
+                    <span class="kpi-hint">Listas para asignar</span>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-door-open"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ocupadas</span>
+                    <p class="kpi-value text-danger">{{ habitaciones_ocupadas|default:"0" }}</p>
+                    <span class="kpi-hint">Huéspedes en estadía</span>
+                </div>
+                <div class="icon-tile sm danger"><i class="bi bi-door-closed"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <div class="kpi">
+                    <div>
+                        <span class="kpi-label">Ocupación</span>
+                        <p class="kpi-value">{{ porcentaje_ocupacion|default:"0"|unlocalize }}%</p>
+                    </div>
+                    <div class="icon-tile sm info"><i class="bi bi-pie-chart"></i></div>
+                </div>
+                <div class="progress mt-2" style="height:6px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ porcentaje_ocupacion|default:'0'|unlocalize }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Reservas activas</span>
+                    <p class="kpi-value">{{ reservas_activas|default:"0" }}</p>
+                    <span class="kpi-hint">Pendientes + confirmadas + en estadía</span>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-calendar-check"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Movimientos de hoy</span>
+                    <p class="kpi-value">{{ reservas_hoy|default:"0" }}</p>
+                    <span class="kpi-hint">{{ reservas_dia }} reserva{{ reservas_dia|pluralize }} creada{{ reservas_dia|pluralize }} hoy</span>
+                </div>
+                <div class="icon-tile sm sol"><i class="bi bi-arrow-left-right"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Huéspedes</span>
+                    <p class="kpi-value">{{ huespedes_registrados|default:"0" }}</p>
+                    <span class="kpi-hint">Registrados en el sistema</span>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-people"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ingresos · {{ periodo_label }}</span>
+                    <p class="kpi-value" style="font-size:1.15rem;">{{ ingresos_periodo|pesos }}</p>
+                    <span class="kpi-hint text-success">Mes: {{ ingresos_mes|pesos }} · Total: {{ ingresos_total|pesos }}</span>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-currency-dollar"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if reservas_vencidas %}
+<div class="alert alert-danger extra-small d-flex align-items-center gap-2" role="alert">
+    <i class="bi bi-clock-history"></i>
+    <span>{{ reservas_vencidas }} reserva{{ reservas_vencidas|pluralize }} activa{{ reservas_vencidas|pluralize }} con fecha de salida vencida. Verifica check-out o cancelación.</span>
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-7">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-bar-chart"></i> Reservas por mes</h2>
+                <span class="extra-small text-muted">Últimos 6 meses</span>
+            </div>
+            <div class="panel-body">
+                <div class="chart-bars" style="height:190px;">
+                    {% for g in grafico_reservas %}
+                    <div class="chart-bar-col" title="{{ g.label }}: {{ g.total }} reserva{{ g.total|pluralize }}">
+                        <div class="chart-bar-fill" style="height: {{ g.porcentaje|unlocalize }}%;"></div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted extra-small w-100 text-center mb-0">Aún no hay reservas registradas.</p>
+                    {% endfor %}
+                </div>
+                {% if grafico_reservas %}
+                <div class="d-flex gap-1 pt-2">
+                    {% for g in grafico_reservas %}
+                    <div class="flex-fill text-center text-muted" style="font-size:.68rem;">
+                        <strong class="d-block text-dark">{{ g.total }}</strong>
+                        {{ g.label }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-wallet2"></i> Ingresos por método</h2>
+                <span class="pill pill-secondary">{{ periodo_label }}</span>
+            </div>
+            <div class="panel-body">
+                {% for m in ingresos_por_metodo %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center extra-small mb-1">
+                        <span class="text-muted">{{ m.label }}</span>
+                        <strong class="text-dark">{{ m.total|pesos }}</strong>
+                    </div>
+                    <div class="progress" style="height:8px;">
+                        <div class="progress-bar bg-{{ m.color }}" role="progressbar" style="width: {{ m.porcentaje|unlocalize }}%;"></div>
+                    </div>
+                    <div class="text-end text-muted extra-small mt-1">{{ m.porcentaje|unlocalize }}% del periodo</div>
+                </div>
+                {% endfor %}
+                <div class="border-top pt-3 d-flex justify-content-between extra-small">
+                    <span class="text-muted fw-semibold">Total recaudado</span>
+                    <strong class="text-success">{{ ingresos_periodo|pesos }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-grid-3x3-gap"></i> Estado físico de habitaciones</h2>
+        <div class="d-flex gap-2">
+            <span class="pill pill-success"><i class="bi bi-circle-fill"></i> Libre</span>
+            <span class="pill pill-danger"><i class="bi bi-circle-fill"></i> Ocupada</span>
+            <span class="pill pill-warning text-dark"><i class="bi bi-circle-fill"></i> Mantenimiento</span>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row g-2">
+            {% for hab in todas_las_habitaciones %}
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="text-center p-3 rounded-3 border {% if hab.estado == 'OCUPADA' %}border-danger bg-danger bg-opacity-10{% elif hab.estado == 'MANTENIMIENTO' %}border-warning bg-warning bg-opacity-10{% else %}border-success bg-success bg-opacity-10{% endif %}">
+                    <strong class="d-block text-dark">Hab. {{ hab.numero }}</strong>
+                    <span class="extra-small {% if hab.estado == 'OCUPADA' %}text-danger{% elif hab.estado == 'MANTENIMIENTO' %}text-warning{% else %}text-success{% endif %}">
+                        {% if hab.estado == 'OCUPADA' %}Ocupada{% elif hab.estado == 'MANTENIMIENTO' %}Mantenimiento{% else %}Libre{% endif %}
+                    </span>
+                    <span class="d-block text-muted" style="font-size:.65rem;">{{ hab.tipo.nombre }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-door-closed"></i>
+                    <p>Aún no hay habitaciones registradas. <a href="{% url 'registrar_habitacion' %}" class="text-decoration-none">Crear la primera</a>.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-lightning-charge"></i> Accesos rápidos</h2>
+            </div>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <a href="{% url 'listar_reservas' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border text-decoration-none h-100">
+                            <div class="icon-tile sm sol"><i class="bi bi-calendar-check"></i></div>
+                            <div>
+                                <strong class="d-block text-dark extra-small">Reservas y huéspedes</strong>
+                                <span class="text-muted extra-small">Operación diaria del hotel</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <a href="{% url 'pagos' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border text-decoration-none h-100">
+                            <div class="icon-tile sm tierra"><i class="bi bi-cash-stack"></i></div>
+                            <div>
+                                <strong class="d-block text-dark extra-small">Pagos y abonos</strong>
+                                <span class="text-muted extra-small">Recaudo y saldos pendientes</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <a href="{% url 'reporte_habitaciones' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border text-decoration-none h-100">
+                            <div class="icon-tile sm"><i class="bi bi-door-open"></i></div>
+                            <div>
+                                <strong class="d-block text-dark extra-small">Reporte de habitaciones</strong>
+                                <span class="text-muted extra-small">Inventario, tarifas e ingresos</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <a href="{% url 'reporte_servicios' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border text-decoration-none h-100">
+                            <div class="icon-tile sm info"><i class="bi bi-stars"></i></div>
+                            <div>
+                                <strong class="d-block text-dark extra-small">Servicios vendidos</strong>
+                                <span class="text-muted extra-small">Consumos e ingresos adicionales</span>
+                            </div>
+                        </a>
+                    </div>
+                    {% if user.is_superuser or user.rol.nombre == 'ADMINISTRADOR' %}
+                    <div class="col-12 col-md-6">
+                        <a href="{% url 'listar_usuarios' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border text-decoration-none h-100">
+                            <div class="icon-tile sm info"><i class="bi bi-people"></i></div>
+                            <div>
+                                <strong class="d-block text-dark extra-small">Usuarios y roles</strong>
+                                <span class="text-muted extra-small">Cuentas y permisos del sistema</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <a href="{% url 'configuracion_hotel' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border text-decoration-none h-100">
+                            <div class="icon-tile sm ok"><i class="bi bi-building-gear"></i></div>
+                            <div>
+                                <strong class="d-block text-dark extra-small">Configurar establecimiento</strong>
+                                <span class="text-muted extra-small">Datos, logo, banner y políticas</span>
+                            </div>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-arrow-left-right"></i> Operación de hoy</h2>
+                <a href="{% url 'disponibilidad' %}" class="extra-small fw-semibold text-decoration-none">Ver panel</a>
+            </div>
+            <div class="panel-body">
+                <h3 class="form-section-title"><i class="bi bi-box-arrow-in-right"></i> Próximos check-in</h3>
+                <div class="d-flex flex-column gap-2 mb-4">
+                    {% for lleg in llegadas_hoy %}
+                    <div class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light">
+                        <div>
+                            <strong class="d-block extra-small text-dark">{{ lleg.huesped.nombre }} {{ lleg.huesped.apellido }}</strong>
+                            <span class="text-muted extra-small">Hab. {{ lleg.habitacion.numero }}</span>
+                        </div>
+                        {% if lleg.estado == 'CONFIRMADA' %}
+                        <span class="pill pill-success">Confirmada</span>
+                        {% else %}
+                        <span class="pill pill-warning">Pendiente</span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-muted extra-small text-center py-2 mb-0">No hay check-in pendientes para hoy.</p>
+                    {% endfor %}
+                </div>
+
+                <h3 class="form-section-title"><i class="bi bi-box-arrow-right"></i> Próximos check-out</h3>
+                <div class="d-flex flex-column gap-2">
+                    {% for sal in salidas_hoy %}
+                    <div class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light">
+                        <div>
+                            <strong class="d-block extra-small text-dark">{{ sal.huesped.nombre }} {{ sal.huesped.apellido }}</strong>
+                            <span class="text-muted extra-small">Hab. {{ sal.habitacion.numero }}</span>
+                        </div>
+                        <span class="pill pill-info">Salida hoy</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted extra-small text-center py-2 mb-0">No hay salidas programadas para hoy.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-gear-wide-connected"></i> Configuración del establecimiento</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'rutina_dia' %}" class="btn btn-light border btn-sm rounded-3">
+                <i class="bi bi-sunrise me-1"></i> Rutina del día
+            </a>
+            <a href="{% url 'configuracion_hotel' %}" class="btn btn-primary btn-sm rounded-3">
+                Configurar <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row g-3 extra-small">
+            <div class="col-12 col-md-4">
+                <span class="text-muted d-block mb-1"><i class="bi bi-geo-alt-fill me-1"></i> Ubicación</span>
+                <strong class="text-dark d-block">{{ hotel.nombre|default:"Posada Wayra" }}</strong>
+                <span class="text-muted">{{ hotel.direccion_completa|default:"Cl. 1 # 9-95, Riohacha, La Guajira, Colombia" }}</span>
+            </div>
+            <div class="col-12 col-md-4">
+                <span class="text-muted d-block mb-1"><i class="bi bi-telephone-fill me-1"></i> Contacto</span>
+                <strong class="text-dark d-block">{{ hotel.telefono|default:"+57 322 220 352" }}</strong>
+                <span class="text-muted">{{ hotel.email|default:"posadawayra@gmail.com" }}</span>
+            </div>
+            <div class="col-12 col-md-4">
+                <span class="text-muted d-block mb-1"><i class="bi bi-file-text-fill me-1"></i> Políticas</span>
+                <span class="d-block text-dark">Check-in: {{ hotel.horario_checkin|default:"3:00 p.m." }} · Check-out: {{ hotel.horario_checkout|default:"11:00 a.m." }}</span>
+                <span class="text-muted">Abono mínimo de 1 noche · cancelación automática por no-show.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

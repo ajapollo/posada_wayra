@@ -1,0 +1,192 @@
+{% load hotel_extras %}
+{% include 'inc/header.html' %}
+
+<div class="page-head no-print">
+    <div class="page-head-main">
+        <div class="icon-tile sol"><i class="bi bi-stars"></i></div>
+        <div>
+            <h1 class="page-title">Reporte de servicios vendidos</h1>
+            <p class="page-subtitle">Consumos adicionales asociados a reservas, cantidades e ingresos por servicio.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-light border btn-sm rounded-3" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Exportar
+        </button>
+        <a href="{% url 'reportes_index' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Servicios vendidos</span>
+                    <p class="kpi-value">{{ total_vendido }}</p>
+                </div>
+                <div class="icon-tile sm sol"><i class="bi bi-bag-check"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ingresos por servicios</span>
+                    <p class="kpi-value" style="font-size:1.2rem;">{{ ingresos_servicios|pesos }}</p>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-cash-stack"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Servicios distintos</span>
+                    <p class="kpi-value">{{ servicios_distintos }}</p>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-collection"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Ticket promedio</span>
+                    <p class="kpi-value" style="font-size:1.2rem;">{{ promedio_venta|pesos }}</p>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-receipt"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar no-print">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+            <label class="form-label" for="repServBuscar">Buscar</label>
+            <input type="text" id="repServBuscar" name="buscar" value="{{ buscar }}" class="form-control form-control-sm" placeholder="Huésped, habitación o servicio">
+        </div>
+        <div class="col-12 col-md-3">
+            <label class="form-label" for="repServServicio">Servicio</label>
+            <select id="repServServicio" name="servicio" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for s in servicios %}
+                <option value="{{ s.id }}" {% if servicio == s.id|stringformat:'s' %}selected{% endif %}>{{ s.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="repServDesde">Desde</label>
+            <input type="date" id="repServDesde" name="fecha_desde" value="{{ fecha_desde }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="repServHasta">Hasta</label>
+            <input type="date" id="repServHasta" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-12 col-md-1 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold flex-fill">Filtrar</button>
+        </div>
+        {% if buscar or servicio or fecha_desde or fecha_hasta %}
+        <div class="col-12">
+            <a href="{% url 'reporte_servicios' %}" class="btn btn-light border btn-sm rounded-3">Limpiar filtros</a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-5">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-bar-chart"></i> Ranking por servicio</h2>
+            </div>
+            <div class="table-shell table-shell-fluid">
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Servicio</th>
+                            <th>Cant.</th>
+                            <th>Ventas</th>
+                            <th>Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in por_servicio %}
+                        <tr>
+                            <td><strong class="text-dark">{{ fila.servicio__nombre }}</strong></td>
+                            <td>{{ fila.unidades }}</td>
+                            <td>{{ fila.ventas }}</td>
+                            <td class="fw-semibold text-dark">{{ fila.total|pesos }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="bi bi-stars"></i>
+                                    <p>No hay servicios vendidos en el periodo.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-list-ul"></i> Consumos detallados</h2>
+                <span class="pill pill-secondary">{{ consumos.paginator.count }} registro{{ consumos.paginator.count|pluralize }}</span>
+            </div>
+            <div class="table-shell">
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Reserva</th>
+                            <th>Huésped</th>
+                            <th>Servicio</th>
+                            <th>Cant.</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consumos %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'ver_reserva' c.reserva.id %}" class="fw-semibold text-decoration-none">#{{ c.reserva.id }}</a>
+                                <span class="d-block text-muted extra-small">Hab. {{ c.reserva.habitacion.numero }}</span>
+                            </td>
+                            <td class="text-dark">{{ c.reserva.huesped.nombre }} {{ c.reserva.huesped.apellido }}</td>
+                            <td>{{ c.servicio.nombre }}</td>
+                            <td>{{ c.cantidad }}</td>
+                            <td class="fw-semibold text-dark">{{ c.subtotal|pesos }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-bag"></i>
+                                    <p>No hay consumos registrados con los filtros seleccionados.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-4 py-3 border-top">
+                {% include 'publico/inc/paginacion.html' with pagina=consumos %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

@@ -1,0 +1,78 @@
+{% load hotel_extras %}
+{% include 'publico/inc/header.html' with es_publico=True %}
+
+<div class="page-head">
+    <div class="page-head-main"><div class="icon-tile"><i class="bi bi-journal-text"></i></div><div><h1 class="page-title">Mi reserva #{{ reserva.id }}</h1><p class="page-subtitle">{{ reserva.habitacion.alojamiento.nombre }} · {{ reserva.habitacion.tipo.nombre }}</p></div></div>
+    <div class="page-actions"><a href="{% url 'cliente_mis_reservas' %}" class="btn btn-light border btn-sm"><i class="bi bi-arrow-left me-1"></i>Mis reservas e historial</a></div>
+</div>
+<div class="alert {% if reserva.estado == 'PENDIENTE' %}alert-warning{% elif reserva.estado == 'CANCELADA' %}alert-secondary{% else %}alert-info{% endif %}" role="status">
+    <strong>{{ reserva.get_estado_display }}</strong> ·
+    {% if reserva.estado == 'PENDIENTE' %}Recepción debe validar tu abono para confirmar la reserva.
+    {% elif reserva.estado == 'CONFIRMADA' %}Te esperamos el {{ reserva.fecha_inicio|date:'d/m/Y' }}. Consulta los horarios de llegada abajo.
+    {% elif reserva.estado == 'EN_ESTADIA' %}Disfruta tu estadía. Contacta a recepción si necesitas ayuda.
+    {% elif reserva.estado == 'CANCELADA' %}Esta reserva fue cancelada. Consulta su historial de pagos y contacta a recepción para resolver dudas.
+    {% else %}Tu estadía ha finalizado. Gracias por visitarnos.{% endif %}
+</div>
+{% if reserva.cancelacion_solicitada and reserva.estado != 'CANCELADA' %}<div class="alert alert-warning" role="status"><i class="bi bi-hourglass-split me-1"></i>Tu solicitud de cancelación está pendiente de revisión por recepción. La reserva conserva su estado hasta que sea resuelta.</div>{% endif %}
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-7">
+        <div class="panel overflow-hidden h-100">
+            <div class="room-photo" style="height:260px;"><img src="{% if reserva.habitacion.imagen %}{{ MEDIA_URL }}{{ reserva.habitacion.imagen.name }}{% else %}{{ MEDIA_URL }}habitaciones/default.jpg{% endif %}" alt="Habitación {{ reserva.habitacion.numero }}"><div class="room-photo-caption"><strong>Habitación {{ reserva.habitacion.numero }}</strong><span class="d-block extra-small">{{ reserva.habitacion.tipo.nombre }}</span></div></div>
+            <div class="panel-body">
+                <h2 class="panel-title mb-3"><i class="bi bi-calendar3"></i>Datos de tu estadía</h2>
+                <dl class="row g-3 small mb-0">
+                    <div class="col-6"><dt class="text-muted fw-normal">Entrada</dt><dd class="fw-bold mb-0">{{ reserva.fecha_inicio|date:'d/m/Y' }}</dd></div>
+                    <div class="col-6"><dt class="text-muted fw-normal">Salida</dt><dd class="fw-bold mb-0">{{ reserva.fecha_fin|date:'d/m/Y' }}</dd></div>
+                    <div class="col-6"><dt class="text-muted fw-normal">Duración</dt><dd class="fw-bold mb-0">{{ reserva.noches }} noche{{ reserva.noches|pluralize }}</dd></div>
+                    <div class="col-6"><dt class="text-muted fw-normal">Huéspedes</dt><dd class="fw-bold mb-0">{{ reserva.num_personas }} personas</dd>
+                        {% if reserva.num_adultos == None or reserva.num_ninos == None %}<span class="text-warning extra-small">Reserva histórica sin desglose de adultos y niños.</span>{% else %}<span>{{ reserva.num_adultos }} adulto{{ reserva.num_adultos|pluralize }} · {{ reserva.num_ninos }} niño{{ reserva.num_ninos|pluralize }}</span>{% endif %}
+                    </div>
+                    <div class="col-12"><dt class="text-muted fw-normal">Titular</dt><dd class="fw-bold mb-0">{{ reserva.huesped.nombre }} {{ reserva.huesped.apellido }}</dd></div>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="panel h-100"><div class="panel-head"><h2 class="panel-title"><i class="bi bi-receipt"></i>Resumen financiero</h2></div><div class="panel-body">
+            <dl class="small mb-3">
+                <div class="d-flex justify-content-between gap-3 mb-2"><dt class="fw-normal text-muted">Hospedaje ({{ reserva.noches }} noches)</dt><dd class="fw-semibold mb-0">{{ reserva.valor_habitacion_total|pesos }}</dd></div>
+                <div class="d-flex justify-content-between gap-3 mb-2"><dt class="fw-normal text-muted">Servicios adicionales</dt><dd class="fw-semibold mb-0">{{ reserva.valor_servicios_total|pesos }}</dd></div>
+                <div class="d-flex justify-content-between gap-3 border-top pt-2 mb-2"><dt>Total reserva</dt><dd class="fw-bold mb-0">{{ reserva.gran_total|pesos }}</dd></div>
+                <div class="d-flex justify-content-between gap-3 mb-2"><dt class="fw-normal text-muted">Pagado</dt><dd class="fw-bold text-success mb-0">{{ reserva.total_pagado|pesos }}</dd></div>
+                <div class="d-flex justify-content-between gap-3"><dt class="fw-normal text-muted">Saldo pendiente</dt><dd class="fw-bold {% if reserva.saldo_pendiente > 0 %}text-warning{% else %}text-success{% endif %} mb-0">{{ reserva.saldo_pendiente|pesos }}</dd></div>
+            </dl>
+            <p class="text-muted extra-small">El hospedaje se cobra por habitación/noche; los servicios contratados se detallan por separado.</p>
+            <div class="pw-aviso-pago mb-3"><strong>Política de No-Show:</strong> para garantizar la reserva se requiere abonar mínimo una noche. Debes presentarte el primer día pactado; de no realizar el check-in ese día, la reserva se cancela sin derecho a reembolso.</div>
+            {% if reserva.estado == 'PENDIENTE' or reserva.estado == 'CONFIRMADA' %}{% if not reserva.cancelacion_solicitada %}
+            <form method="post" action="{% url 'cliente_solicitar_cancelacion' reserva.id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="btn btn-outline-danger w-100" data-confirm="¿Deseas solicitar la cancelación de la reserva #{{ reserva.id }}? Recepción revisará tu solicitud y la política aplicable." data-titulo="Solicitar cancelación" data-accion="Sí, solicitar"><i class="bi bi-x-circle me-1"></i>Solicitar cancelación</button></form>
+            {% endif %}{% endif %}
+        </div></div>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-7">
+        <div class="panel mb-4"><div class="panel-head"><h2 class="panel-title"><i class="bi bi-credit-card"></i>Historial de pagos</h2></div><div class="table-shell">
+            <table class="table-clean"><caption class="visually-hidden">Pagos registrados de tu reserva {{ reserva.id }}</caption><thead><tr><th scope="col">Fecha</th><th scope="col">Método</th><th scope="col" class="text-end">Monto</th></tr></thead><tbody>
+                {% for p in reserva.pagos.all %}<tr><td>{{ p.fecha_pago|date:'d/m/Y H:i' }}</td><td>{{ p.get_metodo_pago_display }}</td><td class="text-end fw-semibold">{{ p.monto|pesos }}</td></tr>{% empty %}<tr><td colspan="3" class="text-center text-muted py-4">No hay pagos registrados. Contacta a recepción para verificar tu abono.</td></tr>{% endfor %}
+            </tbody></table>
+        </div></div>
+        <div class="panel"><div class="panel-head"><h2 class="panel-title"><i class="bi bi-stars"></i>Servicios contratados</h2></div><div class="table-shell"><table class="table-clean"><thead><tr><th scope="col">Servicio</th><th scope="col">Cantidad</th><th scope="col" class="text-end">Subtotal</th></tr></thead><tbody>
+            {% for s in reserva.servicios_consumidos.all %}<tr><td>{{ s.servicio.nombre }}</td><td>{{ s.cantidad }}</td><td class="text-end">{{ s.subtotal|pesos }}</td></tr>{% empty %}<tr><td colspan="3" class="text-center text-muted py-4">Sin servicios adicionales.</td></tr>{% endfor %}
+        </tbody></table></div></div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="panel mb-4"><div class="panel-head"><h2 class="panel-title"><i class="bi bi-clock-history"></i>Historial de la estadía</h2></div><div class="panel-body small">
+            <p>Reserva creada: <strong>{{ reserva.fecha_creacion|date:'d/m/Y H:i' }}</strong></p>
+            <p>Check-in: <strong>{{ reserva.fecha_checkin|date:'d/m/Y H:i'|default:'Sin registrar' }}</strong></p>
+            <p class="mb-0">Check-out: <strong>{{ reserva.fecha_checkout|date:'d/m/Y H:i'|default:'Sin registrar' }}</strong></p>
+        </div></div>
+        <div class="panel"><div class="panel-head"><h2 class="panel-title"><i class="bi bi-info-circle"></i>Recepción y horarios</h2></div><div class="panel-body small text-muted">
+            <p><i class="bi bi-geo-alt me-1"></i>{{ hotel.direccion_completa }}</p>
+            <p>Check-in {{ hotel.horario_checkin|default:'3:00 p.m.' }} · Check-out {{ hotel.horario_checkout|default:'11:00 a.m.' }}</p>
+            {% if hotel.telefono %}<p><a href="tel:{{ hotel.telefono|cut:' ' }}"><i class="bi bi-telephone me-1"></i>{{ hotel.telefono }}</a></p>{% endif %}
+            {% if hotel.email %}<p><a href="mailto:{{ hotel.email }}">{{ hotel.email }}</a></p>{% endif %}
+            {% with wa=hotel.whatsapp|default:hotel.telefono %}{% if wa %}<a href="https://wa.me/{{ wa|cut:' '|cut:'+'|cut:'-'|cut:'('|cut:')' }}?text=Consulta%20sobre%20mi%20reserva%20%23{{ reserva.id }}" target="_blank" rel="noopener" class="btn btn-outline-success btn-sm"><i class="bi bi-whatsapp me-1"></i>Contactar recepción</a>{% endif %}{% endwith %}
+        </div></div>
+    </div>
+</div>
+{% include 'publico/inc/footer.html' %}

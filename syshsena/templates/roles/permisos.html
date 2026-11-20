@@ -1,0 +1,112 @@
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile info"><i class="bi bi-shield-lock"></i></div>
+        <div>
+            <h1 class="page-title">Matriz de permisos</h1>
+            <p class="page-subtitle">Control de acceso por rol definido en el sistema (RN10).</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'listar_roles' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-shield-check me-1"></i> Roles
+        </a>
+        <a href="{% url 'listar_usuarios' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-people me-1"></i> Usuarios
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info d-flex align-items-center gap-2 rounded-3 border-0 shadow-sm mb-4 extra-small" role="alert">
+    <i class="bi bi-info-circle-fill"></i>
+    <span>Las restricciones se aplican en el servidor: cada vista valida el rol antes de mostrar o modificar información. El administrador siempre tiene acceso total.</span>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-table"></i> Permisos por módulo</h2>
+        <span class="pill pill-secondary">{{ filas|length }} módulo{{ filas|length|pluralize }}</span>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Módulo / función</th>
+                    <th class="text-center">Administrador</th>
+                    <th class="text-center">Recepcionista</th>
+                    <th class="text-center">Gerente</th>
+                    <th class="text-center">Cliente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in filas %}
+                <tr>
+                    <td>
+                        <strong class="d-block text-dark">{{ fila.modulo }}</strong>
+                        <span class="text-muted extra-small">{{ fila.detalle }}</span>
+                    </td>
+                    <td class="text-center">
+                        {% if fila.administrador %}
+                        <span class="pill pill-success"><i class="bi bi-check-lg"></i> Sí</span>
+                        {% else %}
+                        <span class="pill pill-secondary"><i class="bi bi-dash"></i> No</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if fila.recepcionista %}
+                        <span class="pill pill-success"><i class="bi bi-check-lg"></i> Sí</span>
+                        {% else %}
+                        <span class="pill pill-secondary"><i class="bi bi-dash"></i> No</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if fila.gerente %}
+                        <span class="pill pill-success"><i class="bi bi-check-lg"></i> Sí</span>
+                        {% else %}
+                        <span class="pill pill-secondary"><i class="bi bi-dash"></i> No</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if fila.cliente %}
+                        <span class="pill pill-success"><i class="bi bi-check-lg"></i> Sí</span>
+                        {% else %}
+                        <span class="pill pill-secondary"><i class="bi bi-dash"></i> No</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for valor, etiqueta in roles %}
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="icon-tile sm {% if valor == 'ADMINISTRADOR' %}sol{% elif valor == 'GERENTE' %}info{% elif valor == 'RECEPCIONISTA' %}ok{% else %}tierra{% endif %}">
+                        <i class="bi {% if valor == 'ADMINISTRADOR' %}bi-shield-lock{% elif valor == 'GERENTE' %}bi-graph-up{% elif valor == 'RECEPCIONISTA' %}bi-person-badge{% else %}bi-person{% endif %}"></i>
+                    </span>
+                    <strong class="text-dark">{{ etiqueta }}</strong>
+                </div>
+                <p class="text-muted extra-small mb-0">
+                    {% if valor == 'ADMINISTRADOR' %}
+                    Acceso total: configuración, usuarios, roles, inventario y reportes.
+                    {% elif valor == 'RECEPCIONISTA' %}
+                    Operación diaria: huéspedes, reservas, pagos, servicios y check-in/out.
+                    {% elif valor == 'GERENTE' %}
+                    Consulta y análisis: dashboard, reportes, reservas e ingresos.
+                    {% else %}
+                    Portal de autoservicio: reservar, consultar sus reservas y solicitar cancelación.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% include 'inc/footer.html' %}

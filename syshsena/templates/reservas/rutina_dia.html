@@ -1,0 +1,261 @@
+{% load static hotel_extras l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-sunrise"></i></div>
+        <div>
+            <h1 class="page-title">Rutina del día</h1>
+            <p class="page-subtitle">{{ hoy|date:"l, d \d\e F \d\e Y" }} · Llegadas, salidas y pendientes operativos.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'listar_reservas' %}" class="btn btn-light border btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-calendar3 me-1"></i> Todas las reservas
+        </a>
+        <a href="{% url 'disponibilidad' %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-arrow-left-right me-1"></i> Check-in / Check-out
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body d-flex align-items-center gap-3">
+                <span class="icon-tile" style="background:#e0f2fe;color:#0369a1;"><i class="bi bi-box-arrow-in-right"></i></span>
+                <div>
+                    <span class="text-muted extra-small d-block">Llegadas programadas</span>
+                    <strong class="h4 mb-0 d-block">{{ llegadas|length }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body d-flex align-items-center gap-3">
+                <span class="icon-tile" style="background:#dcfce7;color:#15803d;"><i class="bi bi-box-arrow-right"></i></span>
+                <div>
+                    <span class="text-muted extra-small d-block">Salidas de hoy</span>
+                    <strong class="h4 mb-0 d-block">{{ salidas|length }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body d-flex align-items-center gap-3">
+                <span class="icon-tile" style="background:#fef3c7;color:#b45309;"><i class="bi bi-cash-coin"></i></span>
+                <div>
+                    <span class="text-muted extra-small d-block">Pagos por verificar</span>
+                    <strong class="h4 mb-0 d-block">{{ pagos_por_verificar|length }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body d-flex align-items-center gap-3">
+                <span class="icon-tile" style="background:#f1f5f9;color:#475569;"><i class="bi bi-brush"></i></span>
+                <div>
+                    <span class="text-muted extra-small d-block">Limpieza / mantenimiento</span>
+                    {% with limpieza=habitaciones_limpieza|length mantenimiento=habitaciones_mantenimiento|length %}
+                    <strong class="h4 mb-0 d-block">{{ limpieza|add:mantenimiento }}</strong>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-6">
+        <div class="panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-box-arrow-in-right"></i> Check-ins de hoy</h2>
+                <span class="pill pill-info">{{ llegadas|length }}</span>
+            </div>
+            <div class="panel-body p-0">
+                {% for r in llegadas %}
+                <div class="d-flex flex-wrap align-items-center gap-3 p-3 border-bottom">
+                    <span class="icon-tile sm"><i class="bi bi-door-open"></i></span>
+                    <div class="flex-grow-1">
+                        <strong class="d-block small">Hab. {{ r.habitacion.numero }} · {{ r.huesped.nombre_completo }}</strong>
+                        <span class="text-muted extra-small">
+                            {{ r.num_personas }} huésped{{ r.num_personas|pluralize }} ·
+                            {{ r.fecha_inicio|date:"d/m/Y" }} → {{ r.fecha_fin|date:"d/m/Y" }} ·
+                            {{ r.noches }} noche{{ r.noches|pluralize }}
+                        </span>
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            <span class="pill {% if r.estado == 'CONFIRMADA' %}pill-success{% elif r.estado == 'PENDIENTE' %}pill-warning{% elif r.estado == 'EN_ESTADIA' %}pill-info{% else %}pill-danger{% endif %}">{{ r.get_estado_display }}</span>
+                            {% if r.saldo_pendiente > 0 %}
+                            <span class="pill pill-warning">Saldo {{ r.saldo_pendiente|pesos }}</span>
+                            {% else %}
+                            <span class="pill pill-success">Pagada</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1">
+                        <a href="{% url 'ver_reserva' r.id %}" class="btn btn-light border btn-sm rounded-3">Ver</a>
+                        {% if puede_operar and r.estado == 'CONFIRMADA' %}
+                        <form method="post" action="{% url 'checkin_reserva' r.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-success btn-sm rounded-3"
+                           data-confirm="Se registrará la llegada de {{ r.huesped.nombre_completo }} en la habitación {{ r.habitacion.numero }}."
+                           data-titulo="Registrar Check-in" data-accion="Sí, registrar llegada">
+                            <i class="bi bi-check2-circle me-1"></i>Check-in
+                        </button></form>
+                        {% elif r.estado == 'PENDIENTE' and puede_operar %}
+                        <form method="post" action="{% url 'confirmar_reserva' r.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm rounded-3"
+                           data-confirm="Para garantizar la reserva se requiere abonar mínimo 1 noche. Si el huésped no se presenta el primer día pactado, la reserva se cancela automáticamente sin derecho a reembolso."
+                           data-titulo="Confirmar reserva">
+                            Confirmar
+                        </button></form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state py-4"><i class="bi bi-calendar-check"></i><p>No hay llegadas programadas para hoy.</p></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-cash-coin"></i> Pagos por verificar</h2>
+                <span class="pill pill-warning">{{ pagos_por_verificar|length }}</span>
+            </div>
+            <div class="panel-body p-0">
+                {% for r in pagos_por_verificar %}
+                <div class="d-flex flex-wrap align-items-center gap-3 p-3 border-bottom">
+                    <div class="flex-grow-1">
+                        <strong class="d-block small">Reserva #{{ r.id }} · {{ r.huesped.nombre_completo }}</strong>
+                        <span class="text-muted extra-small">
+                            Hab. {{ r.habitacion.numero }} ·
+                            Abonado {{ r.total_pagado|pesos }} de {{ r.gran_total|pesos }} ·
+                            Pendiente {{ r.fecha_creacion|hace }}
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <span class="pill pill-warning d-block mb-1">Saldo {{ r.saldo_pendiente|pesos }}</span>
+                        <a href="{% url 'pagos' %}?reserva={{ r.id }}" class="btn btn-light border btn-sm rounded-3">Registrar pago</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state py-4"><i class="bi bi-check2-all"></i><p>No hay pagos pendientes de verificación.</p></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <div class="panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-box-arrow-right"></i> Check-outs de hoy</h2>
+                <span class="pill pill-success">{{ salidas|length }}</span>
+            </div>
+            <div class="panel-body p-0">
+                {% for r in salidas %}
+                <div class="d-flex flex-wrap align-items-center gap-3 p-3 border-bottom">
+                    <span class="icon-tile sm"><i class="bi bi-person-walking"></i></span>
+                    <div class="flex-grow-1">
+                        <strong class="d-block small">Hab. {{ r.habitacion.numero }} · {{ r.huesped.nombre_completo }}</strong>
+                        <span class="text-muted extra-small">
+                            Salida prevista {{ r.fecha_fin|date:"d/m/Y" }} ·
+                            {% if r.saldo_pendiente > 0 %}Saldo {{ r.saldo_pendiente|pesos }}{% else %}Pagada en su totalidad{% endif %}
+                        </span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1">
+                        <a href="{% url 'ver_reserva' r.id %}" class="btn btn-light border btn-sm rounded-3">Ver</a>
+                        {% if puede_operar %}
+                        <form method="post" action="{% url 'checkout_reserva' r.id %}" class="d-inline m-0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-{% if r.saldo_pendiente > 0 %}outline-danger{% else %}primary{% endif %} btn-sm rounded-3"
+                           data-checkout
+                           data-saldo="{{ r.saldo_pendiente|unlocalize }}"
+                           data-habitacion="{{ r.habitacion.numero }}"
+                           aria-disabled="{% if r.saldo_pendiente > 0 %}true{% else %}false{% endif %}"
+                           data-url="{% url 'checkout_reserva' r.id %}">
+                            <i class="bi bi-box-arrow-right me-1"></i>Check-out
+                        </button></form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state py-4"><i class="bi bi-suitcase-lg"></i><p>No hay salidas programadas para hoy.</p></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel mb-4">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-brush"></i> Habitaciones en limpieza</h2>
+                <span class="pill pill-info">{{ habitaciones_limpieza|length }}</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-2">
+                    {% for h in habitaciones_limpieza %}
+                    <div class="col-12 col-sm-6">
+                        <div class="border rounded-3 p-2 d-flex align-items-center justify-content-between gap-2">
+                            <div>
+                                <strong class="d-block small">Hab. {{ h.numero }}</strong>
+                                <span class="text-muted extra-small">{{ h.tipo.nombre }}</span>
+                            </div>
+                            {% if puede_operar %}
+                            <form method="post" action="{% url 'cambiar_estado_habitacion' h.id %}" class="m-0"
+                                  data-confirm="La habitación {{ h.numero }} quedará disponible para nuevas reservas."
+                                  data-titulo="Marcar como disponible" data-accion="Sí, disponible">
+                                {% csrf_token %}
+                                <input type="hidden" name="estado" value="DISPONIBLE">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-success btn-sm rounded-3">
+                                    <i class="bi bi-check2"></i> Lista
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted extra-small py-3">No hay habitaciones pendientes de limpieza.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-tools"></i> Habitaciones en mantenimiento</h2>
+                <span class="pill pill-warning">{{ habitaciones_mantenimiento|length }}</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-2">
+                    {% for h in habitaciones_mantenimiento %}
+                    <div class="col-12 col-sm-6">
+                        <div class="border rounded-3 p-2 d-flex align-items-center justify-content-between gap-2">
+                            <div>
+                                <strong class="d-block small">Hab. {{ h.numero }}</strong>
+                                <span class="text-muted extra-small">{{ h.tipo.nombre }}</span>
+                            </div>
+                            {% if puede_operar %}
+                            <form method="post" action="{% url 'cambiar_estado_habitacion' h.id %}" class="m-0"
+                                  data-confirm="La habitación {{ h.numero }} volverá a estar operativa."
+                                  data-titulo="Habilitar habitación" data-accion="Sí, habilitar">
+                                {% csrf_token %}
+                                <input type="hidden" name="estado" value="DISPONIBLE">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-light border btn-sm rounded-3">
+                                    <i class="bi bi-check2"></i> Habilitar
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted extra-small py-3">No hay habitaciones en mantenimiento.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}

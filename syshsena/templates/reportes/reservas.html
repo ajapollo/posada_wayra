@@ -1,0 +1,132 @@
+{% load hotel_extras %}
+{% include 'inc/header.html' %}
+
+<div class="page-head no-print">
+    <div class="page-head-main">
+        <div class="icon-tile tierra"><i class="bi bi-calendar-range"></i></div>
+        <div>
+            <h1 class="page-title">Reporte de reservas</h1>
+            <p class="page-subtitle">Consulta y filtra el histórico completo de reservas.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-light border btn-sm rounded-3" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Exportar
+        </button>
+        <a href="{% url 'reportes_index' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<div class="toolbar no-print">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="fechaDesde">Desde</label>
+            <input type="date" id="fechaDesde" name="fecha_desde" value="{{ fecha_desde }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="fechaHasta">Hasta</label>
+            <input type="date" id="fechaHasta" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="estadoRep">Estado</label>
+            <select id="estadoRep" name="estado" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for valor, etiqueta in estados %}
+                <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="habitacionRep">Habitación</label>
+            <select id="habitacionRep" name="habitacion" class="form-select form-select-sm">
+                <option value="">Todas</option>
+                {% for hab in habitaciones %}
+                <option value="{{ hab.id }}" {% if habitacion == hab.id|stringformat:'s' %}selected{% endif %}>Hab. {{ hab.numero }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-8 col-md-2">
+            <label class="form-label" for="buscarRep">Huésped</label>
+            <input type="text" id="buscarRep" name="buscar" value="{{ buscar }}" class="form-control form-control-sm" placeholder="Nombre o documento">
+        </div>
+        <div class="col-4 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold flex-grow-1">Filtrar</button>
+            {% if buscar or estado or habitacion or fecha_desde or fecha_hasta %}
+            <a href="{% url 'reporte_reservas' %}" class="btn btn-light border btn-sm rounded-3">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-head">
+        <h2 class="panel-title"><i class="bi bi-list-ul"></i> Reservas</h2>
+        <span class="pill pill-secondary">{{ reservas.paginator.count }} registro{{ reservas.paginator.count|pluralize }}</span>
+    </div>
+    <div class="table-shell">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Huésped</th>
+                    <th>Habitación</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Estado</th>
+                    <th class="text-end">Total</th>
+                    <th class="col-acciones">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservas %}
+                <tr>
+                    <td class="text-muted">#{{ r.id }}</td>
+                    <td>
+                        <strong class="d-block text-dark">{{ r.huesped.nombre }} {{ r.huesped.apellido }}</strong>
+                        <span class="text-muted extra-small">{{ r.huesped.get_tipo_documento_display }} {{ r.huesped.numero_documento }}</span>
+                    </td>
+                    <td><strong class="text-dark">Hab. {{ r.habitacion.numero }}</strong></td>
+                    <td class="text-muted">{{ r.fecha_inicio|date:"d/m/Y" }}</td>
+                    <td class="text-muted">{{ r.fecha_fin|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if r.estado == 'PENDIENTE' %}
+                        <span class="pill pill-warning">Pendiente</span>
+                        {% elif r.estado == 'CONFIRMADA' %}
+                        <span class="pill pill-success">Confirmada</span>
+                        {% elif r.estado == 'EN_ESTADIA' %}
+                        <span class="pill pill-info">En estadía</span>
+                        {% elif r.estado == 'CANCELADA' %}
+                        <span class="pill pill-danger">Cancelada</span>
+                        {% else %}
+                        <span class="pill pill-secondary">Finalizada</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end fw-semibold text-dark">{{ r.gran_total|pesos }}</td>
+                    <td class="col-acciones">
+                        <a href="{% url 'ver_reserva' r.id %}" class="btn btn-sm btn-light border rounded-3">
+                            <i class="bi bi-eye"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x"></i>
+                            <p>No hay reservas que coincidan con los filtros seleccionados.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="no-print">
+    {% include 'publico/inc/paginacion.html' with pagina=reservas %}
+</div>
+
+{% include 'inc/footer.html' %}

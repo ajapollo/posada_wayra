@@ -1,0 +1,182 @@
+{% load l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head">
+    <div class="page-head-main">
+        <div class="icon-tile"><i class="bi bi-door-open"></i></div>
+        <div>
+            <h1 class="page-title">Habitación {{ habitacion.numero }} · {{ habitacion.tipo.nombre }}</h1>
+            <p class="page-subtitle">Edita la tarifa por habitación, la principal y las fotografías de la galería.</p>
+        </div>
+    </div>
+    <div class="page-actions d-flex gap-2">
+        <a href="{% url 'posada_ver_habitacion' habitacion.id %}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Ver vista pública</a>
+        <a href="{% url 'listar_habitaciones' %}" class="btn btn-light border btn-sm rounded-pill px-3">Volver al listado</a>
+    </div>
+</div>
+
+{% if error or form.errors %}
+<div class="alert alert-danger" role="alert">
+    {% if error %}<p class="mb-1">{{ error }}</p>{% endif %}
+    {{ form.non_field_errors }}
+    {% for campo in form %}{% if campo.errors %}<div>{{ campo.label }}: {{ campo.errors }}</div>{% endif %}{% endfor %}
+    <p class="mb-0">Se conservaron los datos del formulario. Por seguridad, vuelve a seleccionar los archivos.</p>
+</div>
+{% endif %}
+{% if estado_bloqueado %}
+<div class="alert alert-warning">Hay una estadía activa. No puedes forzar el estado ni cambiar el tipo o alojamiento. Usa check-in/check-out para gestionar la ocupación.</div>
+{% endif %}
+
+<form id="formHabitacion" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="panel h-100">
+                <div class="panel-body">
+                    <h2 class="panel-title mb-3">Fotografía principal</h2>
+                    <img id="imgPreview" {% if habitacion.imagen %}src="{{ habitacion.imagen.url }}"{% else %}hidden{% endif %} alt="Principal de la habitación {{ habitacion.numero }}" class="img-fluid rounded mb-3" style="max-height:340px; width:100%; object-fit:cover">
+                    {% if not habitacion.imagen %}<p class="text-muted">Sin fotografía principal.</p>{% endif %}
+                    <label class="form-label" for="imagen">Cargar o reemplazar principal</label>
+                    <input type="file" id="imagen" name="imagen" class="form-control" accept="image/jpeg,image/png,image/webp">
+                    <div class="form-text">JPG, PNG o WEBP reales, máximo 8 MB por imagen. Sin cambios se mantiene la principal actual.</div>
+                    <div class="form-check my-3">
+                        <input type="checkbox" id="quitar_imagen" name="quitar_imagen" class="form-check-input" {% if quitar_imagen %}checked{% endif %}>
+                        <label class="form-check-label" for="quitar_imagen">Quitar imagen principal</label>
+                    </div>
+                    {% if fotografias %}
+                    <label class="form-label" for="foto_principal">Usar una fotografía de galería como principal</label>
+                    <select id="foto_principal" name="foto_principal" class="form-select">
+                        <option value="">No cambiar por una foto de galería</option>
+                        {% for foto in fotografias %}<option value="{{ foto.pk }}" {% if foto_principal|stringformat:'s' == foto.pk|stringformat:'s' %}selected{% endif %}>Foto #{{ foto.pk }}</option>{% endfor %}
+                    </select>
+                    {% endif %}
+                    <p class="form-text">Elige una sola acción para la principal: cargar, elegir de galería o quitar. Quitar una foto no borra archivos compartidos.</p>
+                    <div class="p-3 bg-light rounded-3 mt-3 small">
+                        <strong>{{ habitacion.tipo.nombre }}: {{ habitacion.capacidad }} personas en total.</strong>
+                        <div>Máximo {{ habitacion.max_adultos }} adultos y {{ habitacion.max_ninos|default_if_none:1 }} niños, dentro del total.</div>
+                        <div class="mt-2">{{ habitacion.tipo.descripcion|default_if_none:'' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="panel form-panel h-100">
+                <div class="panel-body">
+                    <h2 class="panel-title mb-3">Datos de la habitación</h2>
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="numero">Número / identificador *</label>
+                            <input type="text" id="numero" name="numero" class="form-control" maxlength="10" value="{{ form.numero.value|default_if_none:'' }}" required>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="piso">Piso / ubicación *</label>
+                            <input type="number" step="1" id="piso" name="piso" class="form-control" value="{{ form.piso.value|default_if_none:1|unlocalize }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="tipo">Tipo de habitación *</label>
+                            <select id="tipo" name="tipo" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                {% for t in tipos %}<option value="{{ t.id }}" data-editar-url="{% url 'editar_tipo' t.id %}" {% if form.tipo.value|stringformat:'s' == t.id|stringformat:'s' %}selected{% endif %}>{{ t.nombre }} · {{ t.capacidad }} total · máx. {{ t.max_adultos }} adultos / {{ t.max_ninos|default_if_none:1 }} niños</option>{% endfor %}
+                            </select>
+                            <a id="editarTipo" href="{% url 'editar_tipo' habitacion.tipo_id %}" class="small">Editar capacidad de este tipo</a>
+                            <div class="form-text">Los niños cuentan dentro de ocupación total. Al menos un adulto. Al editar el tipo afectas todas sus habitaciones.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="alojamiento">Alojamiento *</label>
+                            <select id="alojamiento" name="alojamiento" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                {% for a in alojamientos %}<option value="{{ a.id }}" {% if form.alojamiento.value|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>{{ a.nombre }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="precio_noche">Tarifa por habitación / noche (COP) *</label>
+                            <input type="number" step="0.01" min="0" max="9999999999.99" id="precio_noche" name="precio_noche" class="form-control" value="{{ form.precio_noche.value|default_if_none:''|unlocalize }}" required>
+                            <div class="form-text">No es por persona. Los cambios de tarifa aplican a futuras reservas; las existentes conservan su tarifa pactada.</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="estado">Estado operativo</label>
+                            {% if estado_bloqueado %}
+                            <input id="estado" type="text" class="form-control" value="{{ habitacion.get_estado_display }} · estadía activa" disabled>
+                            {% else %}
+                            <select id="estado" name="estado" class="form-select" required>
+                                {% for valor, etiqueta in estados %}<option value="{{ valor }}" {% if form.estado.value == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+                            </select>
+                            {% endif %}
+                            <div class="form-text">Ocupada se asigna desde check-in, nunca manualmente.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel mb-4">
+        <div class="panel-body">
+            <h2 class="panel-title mb-3">Galería de la habitación</h2>
+            <p class="small text-muted">Menor orden se muestra primero; los empates se ordenan por ID. Guarda para aplicar los órdenes.</p>
+            <div class="row g-3 mb-3">
+                {% for foto in fotografias %}
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="border rounded p-2 h-100">
+                        <img src="{{ foto.imagen.url }}" alt="Foto #{{ foto.pk }} de habitación {{ habitacion.numero }}" class="w-100 rounded object-fit-cover" style="height:150px">
+                        <label class="form-label mt-2" for="orden_foto_{{ foto.pk }}">Orden de foto #{{ foto.pk }}</label>
+                        <input type="number" id="orden_foto_{{ foto.pk }}" name="orden_foto_{{ foto.pk }}" value="{{ foto.orden_formulario|unlocalize }}" min="0" step="1" class="form-control" required>
+                        <button type="submit" form="eliminarFoto{{ foto.pk }}" class="btn btn-outline-danger btn-sm mt-2">Eliminar de galería</button>
+                    </div>
+                </div>
+                {% empty %}<p class="text-muted">Todavía no hay fotografías adicionales.</p>{% endfor %}
+            </div>
+            <label class="form-label" for="fotografias">Añadir fotografías</label>
+            <input type="file" id="fotografias" name="fotografias" class="form-control" accept="image/jpeg,image/png,image/webp" multiple>
+            <div class="form-text">Selecciona varias imágenes JPG, PNG o WEBP, máximo 8 MB cada una. Se añaden al final del orden.</div>
+            <div id="galeriaPreview" class="d-flex flex-wrap gap-2 mt-2" aria-live="polite"></div>
+        </div>
+    </div>
+    <div class="form-actions mb-4">
+        <a href="{% url 'listar_habitaciones' %}" class="btn btn-light border rounded-pill px-4">Cancelar</a>
+        <button type="submit" class="btn btn-primary rounded-pill px-4">Guardar habitación y galería</button>
+    </div>
+</form>
+
+{% for foto in fotografias %}
+<form id="eliminarFoto{{ foto.pk }}" method="post" action="{% url 'eliminar_fotografia_habitacion' foto.pk %}" data-confirm="Se retirará esta foto de la galería. La principal no se modifica. Los cambios sin guardar se perderán." data-titulo="Eliminar fotografía" data-accion="Sí, eliminar">
+    {% csrf_token %}
+</form>
+{% endfor %}
+<script>
+(() => {
+    const tipo = document.getElementById('tipo');
+    const enlace = document.getElementById('editarTipo');
+    function actualizarTipo() {
+        const url = tipo.selectedOptions[0]?.dataset.editarUrl;
+        enlace.hidden = !url;
+        if (url) enlace.href = url;
+    }
+    tipo.addEventListener('change', actualizarTipo);
+    actualizarTipo();
+    document.getElementById('imagen').addEventListener('change', function () {
+        if (this.files[0]) {
+            const img = document.getElementById('imgPreview');
+            const url = URL.createObjectURL(this.files[0]);
+            img.hidden = false;
+            img.onload = () => URL.revokeObjectURL(url);
+            img.src = url;
+        }
+    });
+    document.getElementById('fotografias').addEventListener('change', function () {
+        const preview = document.getElementById('galeriaPreview');
+        preview.replaceChildren();
+        for (const archivo of this.files) {
+            const img = document.createElement('img');
+            const url = URL.createObjectURL(archivo);
+            img.src = url;
+            img.alt = archivo.name;
+            img.className = 'rounded object-fit-cover';
+            img.width = 120;
+            img.height = 90;
+            img.onload = () => URL.revokeObjectURL(url);
+            preview.appendChild(img);
+        }
+    });
+})();
+</script>
+{% include 'inc/footer.html' %}

@@ -1,0 +1,238 @@
+{% load l10n %}
+{% include 'inc/header.html' %}
+
+<div class="page-head no-print">
+    <div class="page-head-main">
+        <div class="icon-tile sol"><i class="bi bi-people"></i></div>
+        <div>
+            <h1 class="page-title">Reporte de huéspedes</h1>
+            <p class="page-subtitle">Directorio, procedencia y fidelidad de los huéspedes registrados.</p>
+        </div>
+    </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-light border btn-sm rounded-3" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Exportar
+        </button>
+        <a href="{% url 'reportes_index' %}" class="btn btn-light border btn-sm rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Total de huéspedes</span>
+                    <p class="kpi-value">{{ total_huespedes|default:"0" }}</p>
+                </div>
+                <div class="icon-tile sm info"><i class="bi bi-people"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Nacionales</span>
+                    <p class="kpi-value">{{ nacionales_count|default:"0" }}</p>
+                    <span class="kpi-hint">{{ pct_nacional|default:"100" }}% del total</span>
+                </div>
+                <div class="icon-tile sm ok"><i class="bi bi-person"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Extranjeros</span>
+                    <p class="kpi-value">{{ internacionales_count|default:"0" }}</p>
+                    <span class="kpi-hint">{{ pct_internacional|default:"0" }}% del total</span>
+                </div>
+                <div class="icon-tile sm"><i class="bi bi-globe-americas"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="panel h-100">
+            <div class="panel-body kpi">
+                <div>
+                    <span class="kpi-label">Fidelización VIP</span>
+                    <p class="kpi-value">{{ porcentaje_fidelidad|unlocalize|default:"0" }}%</p>
+                    <span class="kpi-hint">Frecuentes (≥ 2 reservas)</span>
+                </div>
+                <div class="icon-tile sm sol"><i class="bi bi-star"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar no-print">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+            <label class="form-label" for="buscarHuespedRep">Buscar</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="buscarHuespedRep" name="buscar" value="{{ buscar }}" class="form-control" placeholder="Nombre, documento o ciudad">
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="origen">Procedencia</label>
+            <select id="origen" name="origen" class="form-select form-select-sm">
+                <option value="">Todas</option>
+                <option value="nacional" {% if origen == 'nacional' %}selected{% endif %}>Colombiana</option>
+                <option value="internacional" {% if origen == 'internacional' %}selected{% endif %}>Extranjera</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label" for="tipoCliente">Fidelidad</label>
+            <select id="tipoCliente" name="tipo_cliente" class="form-select form-select-sm">
+                <option value="">Todas</option>
+                <option value="nuevo" {% if tipo_cliente == 'nuevo' %}selected{% endif %}>Nuevo (1 reserva)</option>
+                <option value="frecuente" {% if tipo_cliente == 'frecuente' %}selected{% endif %}>VIP frecuente</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label">Estadías entre</label>
+            <div class="input-group input-group-sm">
+                <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control">
+                <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control">
+            </div>
+        </div>
+        <div class="col-6 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-3 fw-semibold flex-grow-1">Filtrar</button>
+            {% if buscar or origen or tipo_cliente or fecha_desde or fecha_hasta %}
+            <a href="{% url 'reporte_huespedes' %}" class="btn btn-light border btn-sm rounded-3">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-person-lines-fill"></i> Lista de huéspedes</h2>
+                <span class="pill pill-secondary">{{ huespedes.paginator.count }} registro{{ huespedes.paginator.count|pluralize }}</span>
+            </div>
+            <div class="table-shell">
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Huésped</th>
+                            <th>Documento</th>
+                            <th>Contacto</th>
+                            <th>Residencia</th>
+                            <th>Reservas</th>
+                            <th class="col-acciones">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in huespedes %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="avatar-sm">{{ h.nombre|slice:":1"|upper }}{{ h.apellido|slice:":1"|upper }}</span>
+                                    <div>
+                                        <strong class="d-block text-dark">{{ h.nombre }} {{ h.apellido }}</strong>
+                                        {% if h.es_frecuente %}
+                                        <span class="pill pill-warning"><i class="bi bi-star-fill"></i> VIP frecuente</span>
+                                        {% elif h.num_reservas %}
+                                        <span class="pill pill-info">Activo</span>
+                                        {% else %}
+                                        <span class="pill pill-secondary">Registrado</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="d-block text-dark">{{ h.numero_documento }}</span>
+                                <span class="text-muted extra-small">{{ h.get_tipo_documento_display }}</span>
+                            </td>
+                            <td>
+                                <span class="d-block"><i class="bi bi-telephone text-muted me-1"></i>{{ h.telefono|default:"—" }}</span>
+                                <span class="d-block text-muted extra-small"><i class="bi bi-envelope me-1"></i>{{ h.email|default:"—" }}</span>
+                            </td>
+                            <td>
+                                <span class="d-block text-dark">{{ h.ciudad_residencia|default:"—" }}</span>
+                                <span class="text-muted extra-small">{{ h.pais_residencia|default:h.nacionalidad|default:"—" }}</span>
+                            </td>
+                            <td>
+                                <span class="pill {% if h.num_reservas %}pill-info{% else %}pill-secondary{% endif %}">
+                                    <i class="bi bi-calendar2-check"></i> {{ h.num_reservas }}
+                                </span>
+                            </td>
+                            <td class="col-acciones">
+                                <a href="{% url 'reporte_reservas' %}?buscar={{ h.numero_documento }}" class="btn btn-sm btn-light border rounded-3" title="Ver reservas">
+                                    <i class="bi bi-journal-text"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="bi bi-person-x"></i>
+                                    <p>No se encontraron huéspedes con los filtros seleccionados.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-4 pb-4 pt-2 no-print">
+                {% include 'publico/inc/paginacion.html' with pagina=huespedes %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel mb-3">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-bar-chart"></i> Indicadores</h2>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Promedio de estadía</span>
+                    <strong class="text-dark">{{ promedio_estadia|unlocalize }} noches</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center extra-small">
+                    <span class="text-muted">Huéspedes frecuentes</span>
+                    <strong class="text-dark">{{ porcentaje_fidelidad|unlocalize }}%</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel mb-3">
+            <div class="panel-head">
+                <h2 class="panel-title"><i class="bi bi-geo-alt"></i> Principales ciudades</h2>
+            </div>
+            <div class="panel-body">
+                {% for c in top_ciudades %}
+                <div class="d-flex justify-content-between align-items-center extra-small mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <span class="text-muted">{{ c.ciudad_residencia|default:"Sin ciudad" }}</span>
+                    <span class="pill pill-secondary">{{ c.total }}</span>
+                </div>
+                {% empty %}
+                <p class="text-muted extra-small text-center py-2 mb-0">Sin datos de procedencia.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel no-print">
+            <div class="panel-body d-grid gap-2">
+                <a href="{% url 'listar_huespedes' %}" class="btn btn-light border btn-sm rounded-3 text-start fw-semibold">
+                    <i class="bi bi-person-vcard me-1"></i> Gestionar huéspedes
+                </a>
+                <a href="{% url 'reporte_ingresos' %}" class="btn btn-light border btn-sm rounded-3 text-start fw-semibold">
+                    <i class="bi bi-cash-stack me-1"></i> Ver reporte de ingresos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'inc/footer.html' %}
