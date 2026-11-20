@@ -19,8 +19,7 @@ __pycache__/
 
 # Archivos estáticos o subidos locales (ajusta según necesites)
 
-staticfiles/
-media/
+
 
 # VS Code y sistema operativo
 .vscode/
