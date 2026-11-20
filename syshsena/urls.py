@@ -3,7 +3,8 @@
 # ARCHIVO: syshsena/urls.py
 # DESCRIPCIÓN: Enrutamiento completo de URLs alineado a las vistas corregidas.
 # ==============================================================================
-
+from django.urls import path, re_path
+from django.views.static import serve
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -143,5 +144,6 @@ urlpatterns = [
     path("reportes/servicios/", reporte_servicios, name="reporte_servicios"),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += [
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+]
