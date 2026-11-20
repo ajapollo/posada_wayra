@@ -1,6 +1,10 @@
+from django.db import DatabaseError
 from .models import ConfiguracionHotel
 
 
 def hotel_config(request):
-    """Expone los datos institucionales a todas las plantillas como `hotel`."""
-    return {"hotel": ConfiguracionHotel.cargar()}
+    try:
+        hotel = ConfiguracionHotel.cargar()
+    except DatabaseError:
+        hotel = None
+    return {"hotel": hotel}
